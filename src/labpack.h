@@ -35,30 +35,34 @@
 #ifndef LABPACK_H
 #define LABPACK_H
 
+#include "mpack.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//#ifndef LABPACK_API
-//# ifdef _WIN32 /* Windows */
-//#  if defined(LABPACK_BUILD_SHARED) /* build DLL */
-//#   define LABPACK_API __declspec(dllexport)
-//#  elif !defined(LABPACK_BUILD_STATIC) [> use DLL <]
-//#   define LABPACK_API __declspec(dllimport)
-//#  else [> static library <]
-//#   define LABPACK_API
-//#  endif
-//# else [> macOS, Linux <]
-//#  if __GNUC__ >= 4
-//#   define LABPACK_API __attribute__((visibility("default")))
-//#  else
-//#   define LABPACK_API
-//#  endif
-//# endif
-//#endif
+#ifndef LABPACK_API
+#  ifdef _WIN32
+#     if defined(LABPACK_BUILD_SHARED) /* build dll */
+#         define LABPACK_API __declspec(dllexport)
+#     elif !defined(LABPACK_BUILD_STATIC) /* use dll */
+#         define LABPACK_API __declspec(dllimport)
+#     else /* static library */
+#         define LABPACK_API
+#     endif
+#  else
+#     if __GNUC__ >= 4
+#         define LABPACK_API __attribute__((visibility("default")))
+#     else
+#         define LABPACK_API
+#     endif
+#  endif
+#endif
 
-__declspec(dllexport) void labpack_writer_create();
-__declspec(dllexport) void labpack_writer_destroy();
+typedef mpack_writer_t labpack_writer_t;
+
+LABPACK_API labpack_writer_t* labpack_writer_create();
+LABPACK_API void labpack_writer_destroy(labpack_writer_t* writer);
 
 #ifdef __cplusplus
 }

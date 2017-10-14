@@ -32,16 +32,16 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-/*#include "mpack.h"*/
 #include "labpack.h"
 
-void
+labpack_writer_t*
 labpack_writer_create() 
 {
+    return NULL;
 }
 
 void
-labpack_writer_destroy()
+labpack_writer_destroy(labpack_writer_t* writer)
 {
 }
 
