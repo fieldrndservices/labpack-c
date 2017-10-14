@@ -37,11 +37,14 @@
 labpack_writer_t*
 labpack_writer_create() 
 {
-    return NULL;
+    labpack_writer_t* writer = malloc(sizeof(labpack_writer_t));
+    return writer;
 }
 
 void
 labpack_writer_destroy(labpack_writer_t* writer)
 {
+    // TODO: Add `mpack_writer_destroy` function and error handling
+    free(writer);
 }
 
