@@ -61,7 +61,6 @@ extern "C" {
 
 #define LABPACK_SUCCESS 0
 #define LABPACK_FAILURE -1
-#define LABPACK_FAILURE_NULL_VALUE -2
 
 /**
  * A MessagePack encoder.

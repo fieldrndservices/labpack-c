@@ -45,6 +45,14 @@ static labpack_writer_t OUT_OF_MEMORY_WRITER = {
     "Not enough memory available to create writer" // status message
 };
 
+static labpack_writer_t NULL_WRITER = {
+    NULL,                               // encoder
+    NULL,                               // pointer to buffer
+    NULL,                               // pointer to size
+    LABPACK_STATUS_ERROR_NULL_VALUE,    // status
+    "The writer cannot be a NULL value" // status message
+};
+
 static void
 labpack_writer_reset_status(labpack_writer_t* writer)
 {
@@ -95,7 +103,8 @@ int
 labpack_writer_begin(labpack_writer_t* writer)
 {
     if (!writer) {
-        return LABPACK_FAILURE_NULL_VALUE;
+        writer = &NULL_WRITER;
+        return LABPACK_FAILURE;
     }
     mpack_writer_init_growable(writer->encoder, writer->buffer, writer->size);
     labpack_writer_reset_status(writer);
@@ -106,7 +115,8 @@ int
 labpack_writer_end(labpack_writer_t* writer)
 {
     if (!writer) {
-        return LABPACK_FAILURE_NULL_VALUE;
+        writer = &NULL_WRITER;
+        return LABPACK_FAILURE;
     }
     if (mpack_writer_destroy(writer->encoder) != mpack_ok) {
         writer->status = LABPACK_STATUS_ERROR_ENCODER;
