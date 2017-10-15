@@ -87,6 +87,11 @@ typedef enum _labpack_status {
 LABPACK_API int labpack_status_code(labpack_status_t status);
 
 /**
+ * Gets a string representation of the status.
+ */
+LABPACK_API char* labpack_status_string(labpack_status_t status);
+
+/**
  * Creates a MessagePack encoder. This allocates memory, and to prevent
  * a memory leak, the <code>labpack_writer_destroy</code> function should be
  * used to free the memory.
