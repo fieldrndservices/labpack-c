@@ -107,6 +107,11 @@ labpack_writer_begin(labpack_writer_t* writer)
         return LABPACK_FAILURE;
     }
     mpack_writer_init_growable(writer->encoder, writer->buffer, writer->size);
+    if (mpack_writer_error(writer->encoder) != mpack_ok) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
+        return LABPACK_FAILURE;
+    }
     labpack_writer_reset_status(writer);
     return LABPACK_SUCCESS;
 }
@@ -145,5 +150,16 @@ labpack_writer_buffer_size(labpack_writer_t* writer)
 {
     assert(writer);
     return mpack_writer_buffer_used(writer->encoder);
+}
+
+int
+labpack_write_i8(labpack_writer_t* writer, int8_t value)
+{
+    if (!writer) {
+        writer = &NULL_WRITER;
+        return LABPACK_FAILURE;
+    }
+    mpack_write_i8(writer->encoder, value); 
+    return LABPACK_SUCCESS;
 }
 

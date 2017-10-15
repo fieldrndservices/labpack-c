@@ -131,6 +131,11 @@ LABPACK_API int labpack_writer_end(labpack_writer_t* writer);
  */
 LABPACK_API size_t labpack_writer_buffer_size(labpack_writer_t* writer);
 
+/**
+ * Writes an 8-bit integer to the MessagePack data buffer of the encoder.
+ */
+LABPACK_API int labpack_write_i8(labpack_writer_t* writer, int8_t value);
+
 #ifdef __cplusplus
 }
 #endif
