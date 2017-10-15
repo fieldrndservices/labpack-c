@@ -1,6 +1,6 @@
 /*
  * labpack - A LabVIEW-Friendly C library for encoding and decoding MessagePack
- * data 
+ * data
  *
  * Copyright (c) 2017 Field R&D Services, LLC. All Rights Reserved.
  *
@@ -32,16 +32,18 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-#ifndef LABPACK_PRIVATE_H
-#define LABPACK_PRIVATE_H
+#include <assert.h>
 
-#include "mpack.h"
+#include "labpack.h"
 
-struct _labpack_writer {
-    mpack_writer_t* encoder;
-    char** buffer;
-    size_t* size;
-    labpack_status_t status;
-};
+int
+labpack_status_code(labpack_status_t status) {
+    switch (status) {
+        case LABPACK_STATUS_OK: return 0;
+        case LABPACK_STATUS_ERROR_NO_MEMORY: return -1;
+        case LABPACK_STATUS_ERROR_NULL_VALUE: return -2;                                     
+        case LABPACK_STATUS_ERROR_ENCODER: return -3;
+        default: assert("Unknown status");
+    }
+}
 
-#endif

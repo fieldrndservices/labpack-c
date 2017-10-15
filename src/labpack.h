@@ -59,12 +59,32 @@ extern "C" {
 #  endif
 #endif
 
+#define LABPACK_SUCCESS 0
+#define LABPACK_FAILURE -1
+#define LABPACK_FAILURE_NULL_VALUE -2
+
 /**
  * A MessagePack encoder.
  */
 typedef struct _labpack_writer labpack_writer_t;
 
-typedef mpack_error_t labpack_error_t;
+/**
+ * Status
+ */
+typedef enum _labpack_status {
+    LABPACK_STATUS_OK,
+
+    LABPACK_STATUS_ERROR_NO_MEMORY,
+    LABPACK_STATUS_ERROR_NULL_VALUE,
+    LABPACK_STATUS_ERROR_ENCODER
+} labpack_status_t;
+
+/**
+ * Gets an integer representation of the status. Errors are negative values,
+ * warnings are positive values, and zero (0) is no error or warning, i.e.
+ * "OK".
+ */
+LABPACK_API int labpack_status_code(labpack_status_t status);
 
 /**
  * Creates a MessagePack encoder. This allocates memory, and to prevent
@@ -83,12 +103,12 @@ LABPACK_API void labpack_writer_destroy(labpack_writer_t* writer);
  * Initializes the MessagePack encoder begins encoding. This must be called
  * before encoding any data.
  */
-LABPACK_API void labpack_writer_begin(labpack_writer_t* writer);
+LABPACK_API int labpack_writer_begin(labpack_writer_t* writer);
 
 /**
  * Finishes the encoding. Makes the encoded data available for use.
  */
-LABPACK_API void labpack_writer_end(labpack_writer_t* writer);
+LABPACK_API int labpack_writer_end(labpack_writer_t* writer);
 
 #ifdef __cplusplus
 }

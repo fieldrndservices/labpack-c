@@ -1,5 +1,6 @@
 set(SOURCE 
     labpack.c
+    labpack-status.c
     mpack.c
 )
 

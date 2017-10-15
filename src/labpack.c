@@ -42,15 +42,23 @@ labpack_writer_init(labpack_writer_t* writer)
 {
     assert(writer);
     writer->encoder = malloc(sizeof(mpack_writer_t));
-    // TODO: Check writer->encoder is not NULL, throw error otherwise
+    if (writer->encoder == NULL) {
+        writer->status = LABPACK_STATUS_ERROR_NO_MEMORY;
+        return;
+    }
     writer->buffer = NULL;
     writer->size = NULL;
+    writer->status = LABPACK_STATUS_OK;
 }
 
 labpack_writer_t*
 labpack_writer_create() 
 {
     labpack_writer_t* writer = malloc(sizeof(labpack_writer_t));
+    if (writer == NULL) {
+        // TODO: Return static writer with error
+        return NULL;
+    }
     labpack_writer_init(writer);
     return writer;
 }
@@ -58,23 +66,43 @@ labpack_writer_create()
 void
 labpack_writer_destroy(labpack_writer_t* writer)
 {
+    free(writer->encoder);
+    writer->encoder = NULL;
+    free(writer->buffer);
+    writer->buffer = NULL;
+    writer->size = NULL;
     free(writer);
+    writer = NULL;
 }
 
-void
+int
 labpack_writer_begin(labpack_writer_t* writer)
 {
-    // TODO: Add check writer is non-NULL
+    if (!writer) {
+        return LABPACK_FAILURE_NULL_VALUE;
+    }
     mpack_writer_init_growable(writer->encoder, writer->buffer, writer->size);
+    return LABPACK_SUCCESS;
 }
 
-void
+int
 labpack_writer_end(labpack_writer_t* writer)
 {
-    // TODO: Add check writer is non-NULL
+    if (!writer) {
+        return LABPACK_FAILURE_NULL_VALUE;
+    }
     if (mpack_writer_destroy(writer->encoder) != mpack_ok) {
         /*return mpack_writer_error(writer->encoder);*/
-        // TODO: Return error code, requires defining Status enum
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        return LABPACK_FAILURE;
     }
+    return LABPACK_SUCCESS;
+}
+
+labpack_status_t
+labpack_writer_status(labpack_writer_t* writer) 
+{
+    assert(writer);
+    return writer->status;
 }
 
