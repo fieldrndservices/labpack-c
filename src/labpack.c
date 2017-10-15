@@ -37,6 +37,14 @@
 #include "labpack.h"
 #include "labpack-private.h"
 
+static labpack_writer_t OUT_OF_MEMORY_WRITER = {
+    NULL, // encoder
+    NULL, // pointer to buffer
+    NULL, // pointer to size
+    LABPACK_STATUS_ERROR_OUT_OF_MEMORY, // status
+    "Not enough memory available to create writer" // status message
+};
+
 static void
 labpack_writer_reset_status(labpack_writer_t* writer)
 {
@@ -64,8 +72,7 @@ labpack_writer_create()
 {
     labpack_writer_t* writer = malloc(sizeof(labpack_writer_t));
     if (writer == NULL) {
-        // TODO: Return static writer with error
-        return NULL;
+        return &OUT_OF_MEMORY_WRITER;
     }
     labpack_writer_init(writer);
     return writer;
