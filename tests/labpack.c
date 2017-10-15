@@ -33,21 +33,26 @@
  */
 
 #include "minunit.h"
+#include "labpack.h"
 
-MU_TEST(test_check) 
+MU_TEST(test_writer_create)
 {
-	mu_check(5 == 7);
+    labpack_writer_t* writer = labpack_writer_create();
+    mu_assert(writer, "Writer should not be NULL");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer should be OK");
+    labpack_writer_destroy(writer);
+    mu_assert(writer, "Writer should be NULL");
 }
 
-MU_TEST_SUITE(test_suite) 
+MU_TEST_SUITE(test_writer) 
 {
-	MU_RUN_TEST(test_check);
+	MU_RUN_TEST(test_writer_create);
 }
 
 int 
 main(int argc, char* argv[]) 
 {
-	MU_RUN_SUITE(test_suite);
+	MU_RUN_SUITE(test_writer);
 	MU_REPORT();
 	return 0;
 }
