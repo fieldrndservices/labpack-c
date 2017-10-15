@@ -40,7 +40,7 @@ int
 labpack_status_code(labpack_status_t status) {
     switch (status) {
         case LABPACK_STATUS_OK: return 0;
-        case LABPACK_STATUS_ERROR_NO_MEMORY: return -1;
+        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return -1;
         case LABPACK_STATUS_ERROR_NULL_VALUE: return -2;                                     
         case LABPACK_STATUS_ERROR_ENCODER: return -3;
         default: assert("Unknown status");
@@ -51,7 +51,7 @@ char*
 labpack_status_string(labpack_status_t status) {
     switch (status) {
         case LABPACK_STATUS_OK: return "No Error";
-        case LABPACK_STATUS_ERROR_NO_MEMORY: return "No Memory Error";
+        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return "Out of Memory Error";
         case LABPACK_STATUS_ERROR_NULL_VALUE: return "Null Value Error";
         case LABPACK_STATUS_ERROR_ENCODER: return "Encoder Error";
         default: assert("Unknown status");

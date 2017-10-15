@@ -43,7 +43,7 @@ labpack_writer_init(labpack_writer_t* writer)
     assert(writer);
     writer->encoder = malloc(sizeof(mpack_writer_t));
     if (writer->encoder == NULL) {
-        writer->status = LABPACK_STATUS_ERROR_NO_MEMORY;
+        writer->status = LABPACK_STATUS_ERROR_OUT_OF_MEMORY;
         return;
     }
     writer->buffer = NULL;

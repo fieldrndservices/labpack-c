@@ -74,7 +74,7 @@ typedef struct _labpack_writer labpack_writer_t;
 typedef enum _labpack_status {
     LABPACK_STATUS_OK,
 
-    LABPACK_STATUS_ERROR_NO_MEMORY,
+    LABPACK_STATUS_ERROR_OUT_OF_MEMORY,
     LABPACK_STATUS_ERROR_NULL_VALUE,
     LABPACK_STATUS_ERROR_ENCODER
 } labpack_status_t;
