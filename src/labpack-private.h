@@ -42,6 +42,7 @@ struct _labpack_writer {
     char** buffer;
     size_t* size;
     labpack_status_t status;
+    const char* status_message;
 };
 
 #endif

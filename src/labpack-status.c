@@ -47,7 +47,7 @@ labpack_status_code(labpack_status_t status) {
     }
 }
 
-char*
+const char*
 labpack_status_string(labpack_status_t status) {
     switch (status) {
         case LABPACK_STATUS_OK: return "No Error";

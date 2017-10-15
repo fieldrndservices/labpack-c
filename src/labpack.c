@@ -38,6 +38,14 @@
 #include "labpack-private.h"
 
 static void
+labpack_writer_reset_status(labpack_writer_t* writer)
+{
+    assert(writer);
+    writer->status = LABPACK_STATUS_OK;        
+    writer->status_message = labpack_status_string(writer->status);
+}
+
+static void
 labpack_writer_init(labpack_writer_t* writer)
 {
     assert(writer);
@@ -48,7 +56,7 @@ labpack_writer_init(labpack_writer_t* writer)
     }
     writer->buffer = NULL;
     writer->size = NULL;
-    writer->status = LABPACK_STATUS_OK;
+    labpack_writer_reset_status(writer);
 }
 
 labpack_writer_t*
@@ -82,6 +90,7 @@ labpack_writer_begin(labpack_writer_t* writer)
         return LABPACK_FAILURE_NULL_VALUE;
     }
     mpack_writer_init_growable(writer->encoder, writer->buffer, writer->size);
+    labpack_writer_reset_status(writer);
     return LABPACK_SUCCESS;
 }
 
@@ -92,8 +101,8 @@ labpack_writer_end(labpack_writer_t* writer)
         return LABPACK_FAILURE_NULL_VALUE;
     }
     if (mpack_writer_destroy(writer->encoder) != mpack_ok) {
-        /*return mpack_writer_error(writer->encoder);*/
         writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
         return LABPACK_FAILURE;
     }
     return LABPACK_SUCCESS;
@@ -104,5 +113,12 @@ labpack_writer_status(labpack_writer_t* writer)
 {
     assert(writer);
     return writer->status;
+}
+
+const char*
+labpack_writer_status_message(labpack_writer_t* writer)
+{
+    assert(writer);
+    return writer->status_message;
 }
 

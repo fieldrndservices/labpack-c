@@ -89,7 +89,7 @@ LABPACK_API int labpack_status_code(labpack_status_t status);
 /**
  * Gets a string representation of the status.
  */
-LABPACK_API char* labpack_status_string(labpack_status_t status);
+LABPACK_API const char* labpack_status_string(labpack_status_t status);
 
 /**
  * Creates a MessagePack encoder. This allocates memory, and to prevent
@@ -105,8 +105,18 @@ LABPACK_API labpack_writer_t* labpack_writer_create();
 LABPACK_API void labpack_writer_destroy(labpack_writer_t* writer);
 
 /**
+ * Gets the current status of the MessagePack encoder.
+ */
+LABPACK_API labpack_status_t labpack_writer_status(labpack_writer_t* writer);
+
+/**
+ * Gets the current status message of the MessagePack encoder.
+ */
+LABPACK_API const char* labpack_writer_status_message(labpack_writer_t* writer);
+
+/**
  * Initializes the MessagePack encoder begins encoding. This must be called
- * before encoding any data.
+ * before encoding any data. This also clears any errors and resets the status.
  */
 LABPACK_API int labpack_writer_begin(labpack_writer_t* writer);
 
