@@ -38,10 +38,10 @@
 #include "labpack-private.h"
 
 static labpack_writer_t OUT_OF_MEMORY_WRITER = {
-    NULL, // encoder
-    NULL, // pointer to buffer
-    NULL, // pointer to size
-    LABPACK_STATUS_ERROR_OUT_OF_MEMORY, // status
+    NULL,                                          // encoder
+    NULL,                                          // pointer to buffer
+    NULL,                                          // pointer to size
+    LABPACK_STATUS_ERROR_OUT_OF_MEMORY,            // status
     "Not enough memory available to create writer" // status message
 };
 
@@ -60,6 +60,7 @@ labpack_writer_init(labpack_writer_t* writer)
     writer->encoder = malloc(sizeof(mpack_writer_t));
     if (writer->encoder == NULL) {
         writer->status = LABPACK_STATUS_ERROR_OUT_OF_MEMORY;
+        writer->status_message = "Not enough memory available to create internal encoder";
         return;
     }
     writer->buffer = NULL;
