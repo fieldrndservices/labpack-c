@@ -32,19 +32,49 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
+#include <assert.h>
+
 #include "labpack.h"
+#include "labpack-private.h"
+
+static void
+labpack_writer_init(labpack_writer_t* writer)
+{
+    assert(writer);
+    writer->encoder = malloc(sizeof(mpack_writer_t));
+    // TODO: Check writer->encoder is not NULL, throw error otherwise
+    writer->buffer = NULL;
+    writer->size = NULL;
+}
 
 labpack_writer_t*
 labpack_writer_create() 
 {
     labpack_writer_t* writer = malloc(sizeof(labpack_writer_t));
+    labpack_writer_init(writer);
     return writer;
 }
 
 void
 labpack_writer_destroy(labpack_writer_t* writer)
 {
-    // TODO: Add `mpack_writer_destroy` function and error handling
     free(writer);
+}
+
+void
+labpack_writer_begin(labpack_writer_t* writer)
+{
+    // TODO: Add check writer is non-NULL
+    mpack_writer_init_growable(writer->encoder, writer->buffer, writer->size);
+}
+
+void
+labpack_writer_end(labpack_writer_t* writer)
+{
+    // TODO: Add check writer is non-NULL
+    if (mpack_writer_destroy(writer->encoder) != mpack_ok) {
+        /*return mpack_writer_error(writer->encoder);*/
+        // TODO: Return error code, requires defining Status enum
+    }
 }
 

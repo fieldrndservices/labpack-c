@@ -1,5 +1,6 @@
 set(SOURCE 
     labpack.c
+    mpack.c
 )
 
 add_library(shared SHARED ${SOURCE})

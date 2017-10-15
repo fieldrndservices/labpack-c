@@ -59,10 +59,36 @@ extern "C" {
 #  endif
 #endif
 
-typedef mpack_writer_t labpack_writer_t;
+/**
+ * A MessagePack encoder.
+ */
+typedef struct _labpack_writer labpack_writer_t;
 
+typedef mpack_error_t labpack_error_t;
+
+/**
+ * Creates a MessagePack encoder. This allocates memory, and to prevent
+ * a memory leak, the <code>labpack_writer_destroy</code> function should be
+ * used to free the memory.
+ */
 LABPACK_API labpack_writer_t* labpack_writer_create();
+
+/**
+ * Destroys (frees) a MessagePack encoder. Frees the memory allocated during
+ * creation.
+ */
 LABPACK_API void labpack_writer_destroy(labpack_writer_t* writer);
+
+/**
+ * Initializes the MessagePack encoder begins encoding. This must be called
+ * before encoding any data.
+ */
+LABPACK_API void labpack_writer_begin(labpack_writer_t* writer);
+
+/**
+ * Finishes the encoding. Makes the encoded data available for use.
+ */
+LABPACK_API void labpack_writer_end(labpack_writer_t* writer);
 
 #ifdef __cplusplus
 }
