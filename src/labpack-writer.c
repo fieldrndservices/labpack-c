@@ -140,3 +140,10 @@ labpack_writer_status_message(labpack_writer_t* writer)
     return writer->status_message;
 }
 
+size_t
+labpack_writer_buffer_size(labpack_writer_t* writer)
+{
+    assert(writer);
+    return mpack_writer_buffer_used(writer->encoder);
+}
+

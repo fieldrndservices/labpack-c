@@ -124,6 +124,13 @@ LABPACK_API int labpack_writer_begin(labpack_writer_t* writer);
  */
 LABPACK_API int labpack_writer_end(labpack_writer_t* writer);
 
+/**
+ * Gets the number of bytes currently stored in the internal buffer after
+ * encoding. In other words, gets the length in bytes of the encoded
+ * MessagePack data.
+ */
+LABPACK_API size_t labpack_writer_buffer_size(labpack_writer_t* writer);
+
 #ifdef __cplusplus
 }
 #endif
