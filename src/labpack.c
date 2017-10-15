@@ -58,14 +58,14 @@ labpack_writer_init(labpack_writer_t* writer)
 {
     assert(writer);
     writer->encoder = malloc(sizeof(mpack_writer_t));
-    if (writer->encoder == NULL) {
+    if (writer->encoder) {
+        labpack_writer_reset_status(writer);
+    } else {
         writer->status = LABPACK_STATUS_ERROR_OUT_OF_MEMORY;
         writer->status_message = "Not enough memory available to create internal encoder";
-        return;
     }
     writer->buffer = NULL;
     writer->size = NULL;
-    labpack_writer_reset_status(writer);
 }
 
 labpack_writer_t*
