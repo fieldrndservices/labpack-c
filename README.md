@@ -25,7 +25,7 @@ The [Microsoft Visual C++ Build Tools 2017](https://www.visualstudio.com/downloa
     > cd LabPack-c
     > build.bat
 
-The DLLs will be available at `build32\src\Release\labpack.dll` and `build64\src\Release\labpack-x64.dll`. 
+The DLLs will be available in the `build32\bin` and `build64\bin` folders. 
 
 ### macOS
 
@@ -37,6 +37,39 @@ Start the Terminal.app. Run the following commands to obtain a copy of the sourc
     $ cmake ..
     $ cd ..
     $ cmake --build build --config Release
+
+The dynamic library (.dylib) will be available in the `build/bin` folder.
+
+## Tests
+
+All of the tests are located in the `tests` folder. The tests are separated from the source, but the tests are built as part of build for the shared library. The tests are built into a single executable that can be run as a standalone application. Thus, in order to run the tests, the project must be built first, then the following commands can be run: 
+
+### Windows
+
+Start a terminal command prompt and navigate to the root folder of the project. Note, if following from the [Build](#build) instructions, a command prompt should already be available at the root folder of the project. Enter the following commands to run the tests:
+
+    > cd build
+    > ctest -C "Debug"
+
+Or
+
+    > build\bin\test_labpack.exe
+
+### macOS
+
+Start the Terminal.app. Note, if following from the [Build](#build) instructions, the Terminal.app has already been started and the present working directory (pwd) should already be the root folder of the project. Enter the following commands to run the tests:
+
+    $ cd build
+    $ ctest
+
+Or,
+
+    $ build/bin/test_labpack
+
+Or,
+
+    $ cd build
+    $ make test
 
 ## License
 
