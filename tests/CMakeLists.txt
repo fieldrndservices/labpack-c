@@ -2,10 +2,12 @@ set(SOURCE
     labpack.c
 )
 
+set(TEST_TARGET_NAME test_${CMAKE_PROJECT_NAME})
+
 include_directories(${labpack_SOURCE_DIR}/src)
 link_directories(${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-add_executable(labpack_tests ${SOURCE})
-target_link_libraries(labpack_tests ${OUTPUT_NAME})
-add_dependencies(labpack_tests shared)
+add_executable(${TEST_TARGET_NAME} ${SOURCE})
+target_link_libraries(${TEST_TARGET_NAME} ${OUTPUT_NAME})
+add_dependencies(${TEST_TARGET_NAME} shared)
 
-add_test(NAME LabPackTests COMMAND labpack_tests)
+add_test(NAME LabPackTests COMMAND ${TEST_TARGET_NAME})
