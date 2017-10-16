@@ -51,14 +51,14 @@ teardown()
 }
 
 static void
-before()
+before_each()
 {
     setup();
     labpack_writer_begin(writer);
 }
 
 static void
-after()
+after_each()
 {
     labpack_writer_end(writer);
     teardown();
@@ -107,14 +107,14 @@ MU_TEST(test_write_i8_works)
     mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
 }
 
-MU_TEST_SUITE(test_writer_create_and_destroy) 
+MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
 	MU_RUN_TEST(test_writer_create_works);
     MU_RUN_TEST(test_writer_destroy_works);
 }
 
-MU_TEST_SUITE(test_writer_begin_and_end)
+MU_TEST_SUITE(writer_begin_and_end)
 {
     MU_SUITE_CONFIGURE(&setup, &teardown);
 
@@ -122,9 +122,9 @@ MU_TEST_SUITE(test_writer_begin_and_end)
     MU_RUN_TEST(test_writer_end_works);
 }
 
-MU_TEST_SUITE(test_write_types)
+MU_TEST_SUITE(write_types)
 {
-    MU_SUITE_CONFIGURE(&before, &after);
+    MU_SUITE_CONFIGURE(&before_each, &after_each);
 
     MU_RUN_TEST(test_write_i8_works);
 }
@@ -132,9 +132,9 @@ MU_TEST_SUITE(test_write_types)
 int 
 main(int argc, char* argv[]) 
 {
-	MU_RUN_SUITE(test_writer_create_and_destroy);
-	MU_RUN_SUITE(test_writer_begin_and_end);
-	MU_RUN_SUITE(test_write_types);
+	MU_RUN_SUITE(writer_create_and_destroy);
+	MU_RUN_SUITE(writer_begin_and_end);
+	MU_RUN_SUITE(write_types);
 	MU_REPORT();
 	return 0;
 }
