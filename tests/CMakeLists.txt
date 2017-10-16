@@ -1,5 +1,5 @@
 set(SOURCE
-    labpack.c
+    labpack-writer.c
 )
 
 set(TEST_TARGET_NAME test_${CMAKE_PROJECT_NAME})
