@@ -39,8 +39,8 @@
 
 struct _labpack_writer {
     mpack_writer_t* encoder;
-    char** buffer;
-    size_t* size;
+    char* buffer;
+    size_t size;
     labpack_status_t status;
     const char* status_message;
 };

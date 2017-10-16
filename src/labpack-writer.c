@@ -39,16 +39,16 @@
 
 static labpack_writer_t OUT_OF_MEMORY_WRITER = {
     NULL,                                          // encoder
-    NULL,                                          // pointer to buffer
-    NULL,                                          // pointer to size
+    NULL,                                          // buffer
+    0,                                             // size
     LABPACK_STATUS_ERROR_OUT_OF_MEMORY,            // status
     "Not enough memory available to create writer" // status message
 };
 
 static labpack_writer_t NULL_WRITER = {
     NULL,                               // encoder
-    NULL,                               // pointer to buffer
-    NULL,                               // pointer to size
+    NULL,                               // buffer
+    0,                                  // size
     LABPACK_STATUS_ERROR_NULL_VALUE,    // status
     "The writer cannot be a NULL value" // status message
 };
@@ -73,7 +73,7 @@ labpack_writer_init(labpack_writer_t* writer)
         writer->status_message = "Not enough memory available to create internal encoder";
     }
     writer->buffer = NULL;
-    writer->size = NULL;
+    writer->size = 0;
 }
 
 labpack_writer_t*
@@ -94,9 +94,8 @@ labpack_writer_destroy(labpack_writer_t* writer)
     writer->encoder = NULL;
     free(writer->buffer);
     writer->buffer = NULL;
-    writer->size = NULL;
+    writer->size = 0;
     free(writer);
-    writer = NULL;
 }
 
 int
@@ -106,12 +105,12 @@ labpack_writer_begin(labpack_writer_t* writer)
         writer = &NULL_WRITER;
         return LABPACK_FAILURE;
     }
-    mpack_writer_init_growable(writer->encoder, writer->buffer, writer->size);
-    if (mpack_writer_error(writer->encoder) != mpack_ok) {
-        writer->status = LABPACK_STATUS_ERROR_ENCODER;
-        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
-        return LABPACK_FAILURE;
-    }
+    mpack_writer_init_growable(writer->encoder, &writer->buffer, &writer->size);
+    /*if (mpack_writer_error(writer->encoder) != mpack_ok) {*/
+        /*writer->status = LABPACK_STATUS_ERROR_ENCODER;*/
+        /*writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));*/
+        /*return LABPACK_FAILURE;*/
+    /*}*/
     labpack_writer_reset_status(writer);
     return LABPACK_SUCCESS;
 }

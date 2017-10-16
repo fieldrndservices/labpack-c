@@ -35,24 +35,106 @@
 #include "minunit.h"
 #include "labpack.h"
 
-MU_TEST(test_writer_create)
+static labpack_writer_t* writer = NULL;
+
+static void
+setup()
 {
-    labpack_writer_t* writer = labpack_writer_create();
-    mu_assert(writer, "Writer should not be NULL");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer should be OK");
-    labpack_writer_destroy(writer);
-    mu_assert(writer, "Writer should be NULL");
+    writer = labpack_writer_create();
 }
 
-MU_TEST_SUITE(test_writer) 
+static void
+teardown()
 {
-	MU_RUN_TEST(test_writer_create);
+    labpack_writer_destroy(writer);
+    writer = NULL;
+}
+
+static void
+before()
+{
+    setup();
+    labpack_writer_begin(writer);
+}
+
+static void
+after()
+{
+    labpack_writer_end(writer);
+    teardown();
+}
+
+MU_TEST(test_writer_sanity_check)
+{
+    labpack_writer_t* writer = NULL;
+    mu_assert(!writer, "Writer is not NULL");
+}
+
+MU_TEST(test_writer_create_works)
+{
+    labpack_writer_t* writer = labpack_writer_create();
+    mu_assert(writer, "Writer is NULL");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_writer_destroy(writer);
+}
+
+MU_TEST(test_writer_destroy_works)
+{
+    labpack_writer_t* writer = labpack_writer_create();
+    labpack_writer_destroy(writer);
+}
+
+MU_TEST(test_writer_begin_works)
+{
+    int return_value = labpack_writer_begin(writer);
+    mu_assert(return_value == LABPACK_SUCCESS, "Failed to begin writer");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_writer_end(writer);
+}
+
+MU_TEST(test_writer_end_works)
+{
+    labpack_writer_begin(writer);
+    int return_value = labpack_writer_end(writer);
+    mu_assert(return_value == LABPACK_SUCCESS, "Failed to end writer");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+}
+
+MU_TEST(test_write_i8_works)
+{
+    int return_value = labpack_write_i8(writer, 127);
+    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i8");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+}
+
+MU_TEST_SUITE(test_writer_create_and_destroy) 
+{
+    MU_RUN_TEST(test_writer_sanity_check);
+	MU_RUN_TEST(test_writer_create_works);
+    MU_RUN_TEST(test_writer_destroy_works);
+}
+
+MU_TEST_SUITE(test_writer_begin_and_end)
+{
+    MU_SUITE_CONFIGURE(&setup, &teardown);
+
+    MU_RUN_TEST(test_writer_begin_works);
+    MU_RUN_TEST(test_writer_end_works);
+}
+
+MU_TEST_SUITE(test_write_types)
+{
+    MU_SUITE_CONFIGURE(&before, &after);
+
+    MU_RUN_TEST(test_write_i8_works);
 }
 
 int 
 main(int argc, char* argv[]) 
 {
-	MU_RUN_SUITE(test_writer);
+	MU_RUN_SUITE(test_writer_create_and_destroy);
+	MU_RUN_SUITE(test_writer_begin_and_end);
+	MU_RUN_SUITE(test_write_types);
 	MU_REPORT();
 	return 0;
 }
