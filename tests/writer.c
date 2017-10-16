@@ -136,6 +136,6 @@ main(int argc, char* argv[])
 	MU_RUN_SUITE(writer_begin_and_end);
 	MU_RUN_SUITE(write_types);
 	MU_REPORT();
-	return 0;
+	return minunit_fail;
 }
 

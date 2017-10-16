@@ -1,4 +1,5 @@
 set(SOURCES
+    status.c
     writer.c
 )
 
