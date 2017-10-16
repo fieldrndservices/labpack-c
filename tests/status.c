@@ -41,9 +41,16 @@ MU_TEST(test_status_code_works)
     mu_assert(code == 0, "Not expected value");
 }
 
+MU_TEST(test_status_string_works)
+{
+    const char* text = labpack_status_string(LABPACK_STATUS_OK);
+    mu_assert_string_eq("No Error", text);
+}
+
 MU_TEST_SUITE(status)
 {
    MU_RUN_TEST(test_status_code_works);
+   MU_RUN_TEST(test_status_string_works);
 }
 
 int 
