@@ -45,6 +45,7 @@ labpack_status_code(labpack_status_t status) {
         case LABPACK_STATUS_ERROR_ENCODER: return -3;
         default: assert("Unknown status");
     }
+    return 1;
 }
 
 const char*
@@ -56,5 +57,6 @@ labpack_status_string(labpack_status_t status) {
         case LABPACK_STATUS_ERROR_ENCODER: return "Encoder Error";
         default: assert("Unknown status");
     }
+    return "Unknown status";
 }
 
