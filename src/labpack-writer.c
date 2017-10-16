@@ -45,14 +45,6 @@ static labpack_writer_t OUT_OF_MEMORY_WRITER = {
     "Not enough memory available to create writer" // status message
 };
 
-static labpack_writer_t NULL_WRITER = {
-    NULL,                               // encoder
-    NULL,                               // buffer
-    0,                                  // size
-    LABPACK_STATUS_ERROR_NULL_VALUE,    // status
-    "The writer cannot be a NULL value" // status message
-};
-
 static void
 labpack_writer_reset_status(labpack_writer_t* writer)
 {
@@ -101,16 +93,13 @@ labpack_writer_destroy(labpack_writer_t* writer)
 int
 labpack_writer_begin(labpack_writer_t* writer)
 {
-    if (!writer) {
-        writer = &NULL_WRITER;
+    assert(writer);
+    mpack_writer_init_growable(writer->encoder, &writer->buffer, &writer->size);
+    if (mpack_writer_error(writer->encoder) != mpack_ok) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
         return LABPACK_FAILURE;
     }
-    mpack_writer_init_growable(writer->encoder, &writer->buffer, &writer->size);
-    /*if (mpack_writer_error(writer->encoder) != mpack_ok) {*/
-        /*writer->status = LABPACK_STATUS_ERROR_ENCODER;*/
-        /*writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));*/
-        /*return LABPACK_FAILURE;*/
-    /*}*/
     labpack_writer_reset_status(writer);
     return LABPACK_SUCCESS;
 }
@@ -118,10 +107,7 @@ labpack_writer_begin(labpack_writer_t* writer)
 int
 labpack_writer_end(labpack_writer_t* writer)
 {
-    if (!writer) {
-        writer = &NULL_WRITER;
-        return LABPACK_FAILURE;
-    }
+    assert(writer);
     if (mpack_writer_destroy(writer->encoder) != mpack_ok) {
         writer->status = LABPACK_STATUS_ERROR_ENCODER;
         writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
@@ -154,11 +140,16 @@ labpack_writer_buffer_size(labpack_writer_t* writer)
 int
 labpack_write_i8(labpack_writer_t* writer, int8_t value)
 {
-    if (!writer) {
-        writer = &NULL_WRITER;
-        return LABPACK_FAILURE;
-    }
+    assert(writer);
     mpack_write_i8(writer->encoder, value); 
+    return LABPACK_SUCCESS;
+}
+
+int
+labpack_write_i16(labpack_writer_t* writer, int16_t value)
+{
+    assert(writer);
+    mpack_write_i16(writer->encoder, value); 
     return LABPACK_SUCCESS;
 }
 
