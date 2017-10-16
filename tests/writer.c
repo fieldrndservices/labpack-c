@@ -114,6 +114,20 @@ MU_TEST(test_write_i16_works)
     mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
 }
 
+MU_TEST(test_write_i32_works)
+{
+    int return_value = labpack_write_i32(writer, 2147483647);
+    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i32");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+}
+
+MU_TEST(test_write_i64_works)
+{
+    int return_value = labpack_write_i64(writer, 2147483648);
+    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i64");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+}
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -135,6 +149,8 @@ MU_TEST_SUITE(write_types)
 
     MU_RUN_TEST(test_write_i8_works);
     MU_RUN_TEST(test_write_i16_works);
+    MU_RUN_TEST(test_write_i32_works);
+    MU_RUN_TEST(test_write_i64_works);
 }
 
 int 

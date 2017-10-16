@@ -153,3 +153,19 @@ labpack_write_i16(labpack_writer_t* writer, int16_t value)
     return LABPACK_SUCCESS;
 }
 
+int
+labpack_write_i32(labpack_writer_t* writer, int32_t value)
+{
+    assert(writer);
+    mpack_write_i32(writer->encoder, value); 
+    return LABPACK_SUCCESS;
+}
+
+int
+labpack_write_i64(labpack_writer_t* writer, int64_t value)
+{
+    assert(writer);
+    mpack_write_i64(writer->encoder, value); 
+    return LABPACK_SUCCESS;
+}
+

@@ -141,6 +141,16 @@ LABPACK_API int labpack_write_i8(labpack_writer_t* writer, int8_t value);
  */
 LABPACK_API int labpack_write_i16(labpack_writer_t* writer, int16_t value);
 
+/**
+ * Writes a 32-bit integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API int labpack_write_i32(labpack_writer_t* writer, int32_t value);
+
+/**
+ * Writes a 64-bit integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API int labpack_write_i64(labpack_writer_t* writer, int64_t value);
+
 #ifdef __cplusplus
 }
 #endif
