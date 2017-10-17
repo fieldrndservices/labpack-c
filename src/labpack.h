@@ -235,6 +235,28 @@ LABPACK_API void labpack_write_nil(labpack_writer_t* writer);
  */
 LABPACK_API void labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t size);
 
+/**
+ * Begins an array for encoding. The <code>labpack_end_array</code> function
+ * must be called once all <code>count</code> elements have been written.
+ */
+LABPACK_API void labpack_begin_array(labpack_writer_t* writer, uint32_t count);
+
+/**
+ * Begins a map for encoding. The <code>labpack_end_map</code> function must be
+ * called once all <code>count</code> elements have been written.
+ */
+LABPACK_API void labpack_begin_map(labpack_writer_t* writer, uint32_t count);
+
+/**
+ * Finishes encoding an array.
+ */
+LABPACK_API void labpack_end_array(labpack_writer_t* writer);
+
+/**
+ * Finishes encoding a map.
+ */
+LABPACK_API void labpack_end_map(labpack_writer_t* writer);
+
 #ifdef __cplusplus
 }
 #endif

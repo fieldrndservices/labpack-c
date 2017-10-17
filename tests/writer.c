@@ -239,6 +239,22 @@ MU_TEST(test_write_object_bytes_errors_with_wrong_size)
     mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
 }
 
+MU_TEST(test_begin_and_end_array_works)
+{
+    labpack_begin_array(writer, 0);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to begin array");
+    labpack_end_array(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to end array");
+}
+
+MU_TEST(test_begin_and_end_map_works)
+{
+    labpack_begin_map(writer, 0);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to begin map");
+    labpack_end_map(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to end map");
+}
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -289,6 +305,14 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_object_bytes_errors_with_wrong_size);
 }
 
+MU_TEST_SUITE(arrays_and_maps)
+{
+    MU_SUITE_CONFIGURE(&before_each, &after_each);
+
+    MU_RUN_TEST(test_begin_and_end_array_works);
+    MU_RUN_TEST(test_begin_and_end_map_works);
+}
+
 int 
 main(int argc, char* argv[]) 
 {
@@ -296,6 +320,7 @@ main(int argc, char* argv[])
 	MU_RUN_SUITE(writer_begin_and_end);
     MU_RUN_SUITE(writer_status);
 	MU_RUN_SUITE(write_types);
+    MU_RUN_SUITE(arrays_and_maps);
 	MU_REPORT();
 	return minunit_fail;
 }

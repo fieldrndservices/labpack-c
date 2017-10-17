@@ -271,3 +271,31 @@ labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t si
     mpack_write_object_bytes(writer->encoder, data, size);
 }
 
+void
+labpack_begin_array(labpack_writer_t* writer, uint32_t count)
+{
+    assert(writer);
+    mpack_start_array(writer->encoder, count);
+}
+
+void
+labpack_begin_map(labpack_writer_t* writer, uint32_t count)
+{
+    assert(writer);
+    mpack_start_map(writer->encoder, count);
+}
+
+void
+labpack_end_array(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_finish_array(writer->encoder);
+}
+
+void
+labpack_end_map(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_finish_map(writer->encoder);
+}
+
