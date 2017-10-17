@@ -182,3 +182,38 @@ labpack_write_int(labpack_writer_t* writer, int64_t value)
     mpack_write_int(writer->encoder, value);
 }
 
+void
+labpack_write_u8(labpack_writer_t* writer, uint8_t value)
+{
+    assert(writer);
+    mpack_write_u8(writer->encoder, value);
+}
+
+void
+labpack_write_u16(labpack_writer_t* writer, uint16_t value)
+{
+    assert(writer);
+    mpack_write_u16(writer->encoder, value);
+}
+
+void
+labpack_write_u32(labpack_writer_t* writer, uint32_t value)
+{
+    assert(writer);
+    mpack_write_u32(writer->encoder, value);
+}
+
+void
+labpack_write_u64(labpack_writer_t* writer, uint64_t value)
+{
+    assert(writer);
+    mpack_write_u64(writer->encoder, value);
+}
+
+void
+labpack_write_uint(labpack_writer_t* writer, uint64_t value)
+{
+    assert(writer);
+    mpack_write_uint(writer->encoder, value);
+}
+

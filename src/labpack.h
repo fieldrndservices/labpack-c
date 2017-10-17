@@ -145,30 +145,55 @@ LABPACK_API void labpack_writer_end(labpack_writer_t* writer);
 LABPACK_API size_t labpack_writer_buffer_size(labpack_writer_t* writer);
 
 /**
- * Writes an 8-bit integer to the encoder's MessagePack data buffer.
+ * Writes a signed 8-bit integer to the encoder's MessagePack data buffer.
  */
 LABPACK_API void labpack_write_i8(labpack_writer_t* writer, int8_t value);
 
 /**
- * Writes a 16-bit integer to the encoder's MessagePack data buffer.
+ * Writes a signed 16-bit integer to the encoder's MessagePack data buffer.
  */
 LABPACK_API void labpack_write_i16(labpack_writer_t* writer, int16_t value);
 
 /**
- * Writes a 32-bit integer to the encoder's MessagePack data buffer.
+ * Writes a signed 32-bit integer to the encoder's MessagePack data buffer.
  */
 LABPACK_API void labpack_write_i32(labpack_writer_t* writer, int32_t value);
 
 /**
- * Writes a 64-bit integer to the encoder's MessagePack data buffer.
+ * Writes a signed 64-bit integer to the encoder's MessagePack data buffer.
  */
 LABPACK_API void labpack_write_i64(labpack_writer_t* writer, int64_t value);
 
 /**
- * Writes an integer as compactly as possible to the encoder's MessagePack data
- * buffer.
+ * Writes a signed integer as compactly as possible to the encoder's
+ * MessagePack data buffer.
  */
 LABPACK_API void labpack_write_int(labpack_writer_t* writer, int64_t value);
+
+/**
+ * Writes an unsigned 8-bit integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_u8(labpack_writer_t* writer, uint8_t value);
+
+/**
+ * Writes an unsigned 16-bit integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_u16(labpack_writer_t* writer, uint16_t value);
+
+/**
+ * Writes an unsigned 32-bit integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_u32(labpack_writer_t* writer, uint32_t value);
+
+/**
+ * Writes an unsigned 64-bit integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_u64(labpack_writer_t* writer, uint64_t value);
+
+/**
+ * Writes an unsigned integer to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_uint(labpack_writer_t* writer, uint64_t value);
 
 #ifdef __cplusplus
 }

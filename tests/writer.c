@@ -148,6 +148,35 @@ MU_TEST(test_write_int_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to write int");
 }
 
+MU_TEST(test_write_u8_works)
+{
+    labpack_write_u8(writer, 127);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write u8");
+}
+
+MU_TEST(test_write_u16_works)
+{
+    labpack_write_u16(writer, 32767);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write u16");
+}
+
+MU_TEST(test_write_u32_works)
+{
+    labpack_write_u32(writer, 2147483647);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write u32");
+}
+
+MU_TEST(test_write_u64_works)
+{
+    labpack_write_u64(writer, 2147483648);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write u64");
+}
+
+MU_TEST(test_write_uint_works)
+{
+    labpack_write_uint(writer, 1234567890);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write uint");
+}
 
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
@@ -183,6 +212,11 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_i32_works);
     MU_RUN_TEST(test_write_i64_works);
     MU_RUN_TEST(test_write_int_works);
+    MU_RUN_TEST(test_write_u8_works);
+    MU_RUN_TEST(test_write_u16_works);
+    MU_RUN_TEST(test_write_u32_works);
+    MU_RUN_TEST(test_write_u64_works);
+    MU_RUN_TEST(test_write_uint_works);
 }
 
 int 
