@@ -37,6 +37,13 @@
 
 static labpack_writer_t* writer = NULL;
 
+// Example from the MessagePack home page (http://msgpack.org), i.e. '{"compact":true,"schema":0}'
+static const size_t MSGPACK_HOME_PAGE_EXAMPLE_LENGTH = 18;
+static const char
+MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT[MSGPACK_HOME_PAGE_EXAMPLE_LENGTH] = {0x82,
+    0xA7, 0x63, 0x6F, 0x6D, 0x70, 0x61, 0x63, 0x74, 0xC3, 0xA6, 0x73, 0x63,
+    0x68, 0x65, 0x6d, 0x61, 0x00};
+
 static void
 setup()
 {
@@ -216,9 +223,20 @@ MU_TEST(test_write_nil_works)
 
 MU_TEST(test_write_object_bytes_works)
 {
-    // TODO: Add writing actual data
+    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write object");
+}
+
+MU_TEST(test_write_object_bytes_works_with_null_data)
+{
     labpack_write_object_bytes(writer, NULL, 0);
     mu_assert(labpack_writer_is_ok(writer), "Failed to write object");
+}
+
+MU_TEST(test_write_object_bytes_errors_with_wrong_size)
+{
+    labpack_write_object_bytes(writer, NULL, 10);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
 }
 
 MU_TEST_SUITE(writer_create_and_destroy) 
@@ -267,6 +285,8 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_false_works);
     MU_RUN_TEST(test_write_nil_works);
     MU_RUN_TEST(test_write_object_bytes_works);
+    MU_RUN_TEST(test_write_object_bytes_works_with_null_data);
+    MU_RUN_TEST(test_write_object_bytes_errors_with_wrong_size);
 }
 
 int 

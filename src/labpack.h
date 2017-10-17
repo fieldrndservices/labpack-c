@@ -226,7 +226,12 @@ LABPACK_API void labpack_write_false(labpack_writer_t* writer);
 LABPACK_API void labpack_write_nil(labpack_writer_t* writer);
 
 /**
- * Writes a pre-encoded MessagePack object to this encoder's data buffer.
+ * Writes a pre-encoded MessagePack object to this encoder's data buffer. It is
+ * possible to have NULL data as long as the size is zero, where this function
+ * essentially becomes a no-operation (no-op) and the internal data buffer of
+ * the encoder is not modified. If the data is NULL but the size is not zero,
+ * then a LABPACK_STATUS_ERROR_NULL_VALUE error occurs as this would result in
+ * a SEGFAULT.
  */
 LABPACK_API void labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t size);
 

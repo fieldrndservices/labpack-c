@@ -263,7 +263,11 @@ void
 labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t size)
 {
     assert(writer);
-    // TODO: Add check for NULL data
+    if (!data && size > 0) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = "The MessagePack object data is NULL but the size is not zero";
+        return;
+    }
     mpack_write_object_bytes(writer->encoder, data, size);
 }
 
