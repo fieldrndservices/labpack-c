@@ -42,33 +42,32 @@ The dynamic library (.dylib) will be available in the `build/bin` folder.
 
 ## Tests
 
-All of the tests are located in the `tests` folder. The tests are separated from the source, but the tests are built as part of build for the shared library. The tests are built into a single executable that can be run as a standalone application. Thus, in order to run the tests, the project must be built first, then the following commands can be run: 
+All of the tests are located in the `tests` folder. The tests are organized in "modules", where an executable is created that tests each source "module", i.e. writer, reader, etc. The tests are separated from the source, but the tests are built as part of build for the shared library. Each test executable is located in the `bin\tests` folder of the build directory and they can be run independently.
 
 ### Windows
 
 Start a terminal command prompt and navigate to the root folder of the project. Note, if following from the [Build](#build) instructions, a command prompt should already be available at the root folder of the project. Enter the following commands to run the tests:
 
-    > cd build
     > ctest -C "Debug"
 
 Or
 
-    > build\bin\test_labpack.exe
+    > bin\tests\writer
+    > bin\tests\status
 
 ### macOS
 
 Start the Terminal.app. Note, if following from the [Build](#build) instructions, the Terminal.app has already been started and the present working directory (pwd) should already be the root folder of the project. Enter the following commands to run the tests:
 
-    $ cd build
     $ ctest
 
 Or,
 
-    $ build/bin/test_labpack
+    $ bin/tests/writer
+    $ bin/tests/status
 
 Or,
 
-    $ cd build
     $ make test
 
 ## License
