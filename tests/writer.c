@@ -86,46 +86,40 @@ MU_TEST(test_writer_destroy_works)
 
 MU_TEST(test_writer_begin_works)
 {
-    int return_value = labpack_writer_begin(writer);
-    mu_assert(return_value == LABPACK_SUCCESS, "Failed to begin writer");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_writer_begin(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to begin writer");
     labpack_writer_end(writer);
 }
 
 MU_TEST(test_writer_end_works)
 {
     labpack_writer_begin(writer);
-    int return_value = labpack_writer_end(writer);
-    mu_assert(return_value == LABPACK_SUCCESS, "Failed to end writer");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_writer_end(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to end writer");
 }
 
 MU_TEST(test_write_i8_works)
 {
-    int return_value = labpack_write_i8(writer, 127);
-    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i8");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_write_i8(writer, 127);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write i8");
 }
 
 MU_TEST(test_write_i16_works)
 {
-    int return_value = labpack_write_i16(writer, 32767);
-    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i16");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_write_i16(writer, 32767);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write i16");
 }
 
 MU_TEST(test_write_i32_works)
 {
-    int return_value = labpack_write_i32(writer, 2147483647);
-    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i32");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_write_i32(writer, 2147483647);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write i32");
 }
 
 MU_TEST(test_write_i64_works)
 {
-    int return_value = labpack_write_i64(writer, 2147483648);
-    mu_assert(return_value == LABPACK_SUCCESS, "Failed to write i64");
-    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
+    labpack_write_i64(writer, 2147483648);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write i64");
 }
 
 MU_TEST_SUITE(writer_create_and_destroy) 

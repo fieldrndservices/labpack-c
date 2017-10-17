@@ -114,15 +114,31 @@ LABPACK_API labpack_status_t labpack_writer_status(labpack_writer_t* writer);
 LABPACK_API const char* labpack_writer_status_message(labpack_writer_t* writer);
 
 /**
+ * Returns <code>true</code> if the MessagePack encoder is OK. If an error has
+ * occurred, then it returns <code>false</code>.
+ */
+LABPACK_API bool labpack_writer_is_ok(labpack_writer_t* writer);
+
+/**
+ * Returns <code>true</code> if an error has occurred with the MessagePack
+ * encoder. Otherwise, it returns <code>false</code>.
+ *
+ * The <code>labpack_writer_status</code> and
+ * <code>labpack_writer_status_message</code> should be used to determine the
+ * cause of an error if one has occurred.
+ */
+LABPACK_API bool labpack_writer_is_error(labpack_writer_t* writer);
+
+/**
  * Initializes the MessagePack encoder begins encoding. This must be called
  * before encoding any data. This also clears any errors and resets the status.
  */
-LABPACK_API int labpack_writer_begin(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_begin(labpack_writer_t* writer);
 
 /**
  * Finishes the encoding. Makes the encoded data available for use.
  */
-LABPACK_API int labpack_writer_end(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_end(labpack_writer_t* writer);
 
 /**
  * Gets the number of bytes currently stored in the internal buffer after
@@ -134,22 +150,22 @@ LABPACK_API size_t labpack_writer_buffer_size(labpack_writer_t* writer);
 /**
  * Writes an 8-bit integer to the encoder's MessagePack data buffer.
  */
-LABPACK_API int labpack_write_i8(labpack_writer_t* writer, int8_t value);
+LABPACK_API void labpack_write_i8(labpack_writer_t* writer, int8_t value);
 
 /**
  * Writes a 16-bit integer to the encoder's MessagePack data buffer.
  */
-LABPACK_API int labpack_write_i16(labpack_writer_t* writer, int16_t value);
+LABPACK_API void labpack_write_i16(labpack_writer_t* writer, int16_t value);
 
 /**
  * Writes a 32-bit integer to the encoder's MessagePack data buffer.
  */
-LABPACK_API int labpack_write_i32(labpack_writer_t* writer, int32_t value);
+LABPACK_API void labpack_write_i32(labpack_writer_t* writer, int32_t value);
 
 /**
  * Writes a 64-bit integer to the encoder's MessagePack data buffer.
  */
-LABPACK_API int labpack_write_i64(labpack_writer_t* writer, int64_t value);
+LABPACK_API void labpack_write_i64(labpack_writer_t* writer, int64_t value);
 
 #ifdef __cplusplus
 }

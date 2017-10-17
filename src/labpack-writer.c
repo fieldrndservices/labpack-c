@@ -90,7 +90,7 @@ labpack_writer_destroy(labpack_writer_t* writer)
     free(writer);
 }
 
-int
+void
 labpack_writer_begin(labpack_writer_t* writer)
 {
     assert(writer);
@@ -98,22 +98,18 @@ labpack_writer_begin(labpack_writer_t* writer)
     if (mpack_writer_error(writer->encoder) != mpack_ok) {
         writer->status = LABPACK_STATUS_ERROR_ENCODER;
         writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
-        return LABPACK_FAILURE;
     }
     labpack_writer_reset_status(writer);
-    return LABPACK_SUCCESS;
 }
 
-int
+void
 labpack_writer_end(labpack_writer_t* writer)
 {
     assert(writer);
     if (mpack_writer_destroy(writer->encoder) != mpack_ok) {
         writer->status = LABPACK_STATUS_ERROR_ENCODER;
         writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
-        return LABPACK_FAILURE;
     }
-    return LABPACK_SUCCESS;
 }
 
 labpack_status_t
@@ -130,6 +126,20 @@ labpack_writer_status_message(labpack_writer_t* writer)
     return writer->status_message;
 }
 
+bool
+labpack_writer_is_ok(labpack_writer_t* writer)
+{
+    assert(writer);
+    return labpack_writer_status(writer) == LABPACK_STATUS_OK;
+}
+
+bool
+labpack_writer_is_error(labpack_writer_t* writer)
+{
+    assert(writer);
+    return labpack_writer_status(writer) != LABPACK_STATUS_OK;
+}
+
 size_t
 labpack_writer_buffer_size(labpack_writer_t* writer)
 {
@@ -137,35 +147,38 @@ labpack_writer_buffer_size(labpack_writer_t* writer)
     return mpack_writer_buffer_used(writer->encoder);
 }
 
-int
+void
 labpack_write_i8(labpack_writer_t* writer, int8_t value)
 {
     assert(writer);
     mpack_write_i8(writer->encoder, value); 
-    return LABPACK_SUCCESS;
 }
 
-int
+void
 labpack_write_i16(labpack_writer_t* writer, int16_t value)
 {
     assert(writer);
     mpack_write_i16(writer->encoder, value); 
-    return LABPACK_SUCCESS;
 }
 
-int
+void
 labpack_write_i32(labpack_writer_t* writer, int32_t value)
 {
     assert(writer);
     mpack_write_i32(writer->encoder, value); 
-    return LABPACK_SUCCESS;
 }
 
-int
+void
 labpack_write_i64(labpack_writer_t* writer, int64_t value)
 {
     assert(writer);
     mpack_write_i64(writer->encoder, value); 
-    return LABPACK_SUCCESS;
+}
+
+void
+labpack_write_int(labpack_writer_t* writer, int64_t value)
+{
+    assert(writer);
+    mpack_write_int(writer->encoder, value);
 }
 
