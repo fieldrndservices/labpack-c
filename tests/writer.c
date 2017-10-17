@@ -190,6 +190,30 @@ MU_TEST(test_write_double_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to write double");
 }
 
+MU_TEST(test_write_bool_works)
+{
+    labpack_write_bool(writer, true);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write bool");
+}
+
+MU_TEST(test_write_true_works)
+{
+    labpack_write_true(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write true");
+}
+
+MU_TEST(test_write_false_works)
+{
+    labpack_write_false(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write false");
+}
+
+MU_TEST(test_write_nil_works)
+{
+    labpack_write_nil(writer);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write nil");
+}
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -231,6 +255,10 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_uint_works);
     MU_RUN_TEST(test_write_float_works);
     MU_RUN_TEST(test_write_double_works);
+    MU_RUN_TEST(test_write_bool_works);
+    MU_RUN_TEST(test_write_true_works);
+    MU_RUN_TEST(test_write_false_works);
+    MU_RUN_TEST(test_write_nil_works);
 }
 
 int 

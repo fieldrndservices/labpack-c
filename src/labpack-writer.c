@@ -231,3 +231,31 @@ labpack_write_double(labpack_writer_t* writer, double value)
     mpack_write_double(writer->encoder, value);
 }
 
+void
+labpack_write_bool(labpack_writer_t* writer, bool value)
+{
+    assert(writer);
+    mpack_write_bool(writer->encoder, value);
+}
+
+void
+labpack_write_true(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_write_true(writer->encoder);
+}
+
+void
+labpack_write_false(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_write_false(writer->encoder);
+}
+
+void
+labpack_write_nil(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_write_nil(writer->encoder);
+}
+

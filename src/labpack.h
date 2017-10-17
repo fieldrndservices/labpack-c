@@ -205,6 +205,26 @@ LABPACK_API void labpack_write_float(labpack_writer_t* writer, float value);
  */
 LABPACK_API void labpack_write_double(labpack_writer_t* writer, double value);
 
+/**
+ * Writes a boolean to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_bool(labpack_writer_t* writer, bool value);
+
+/**
+ * Writes a boolean <code>true</code> to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_true(labpack_writer_t* writer);
+
+/**
+ * Writes a boolean <code>false</code> to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_false(labpack_writer_t* writer);
+
+/**
+ * Writes a Nil to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_nil(labpack_writer_t* writer);
+
 #ifdef __cplusplus
 }
 #endif
