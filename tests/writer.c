@@ -122,6 +122,13 @@ MU_TEST(test_write_i64_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to write i64");
 }
 
+MU_TEST(test_write_int_works)
+{
+    labpack_write_int(writer, 123);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write int");
+}
+
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -145,6 +152,7 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_i16_works);
     MU_RUN_TEST(test_write_i32_works);
     MU_RUN_TEST(test_write_i64_works);
+    MU_RUN_TEST(test_write_int_works);
 }
 
 int 

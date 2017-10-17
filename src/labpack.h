@@ -164,6 +164,12 @@ LABPACK_API void labpack_write_i32(labpack_writer_t* writer, int32_t value);
  */
 LABPACK_API void labpack_write_i64(labpack_writer_t* writer, int64_t value);
 
+/**
+ * Writes an integer as compactly as possible to the encoder's MessagePack data
+ * buffer.
+ */
+LABPACK_API void labpack_write_int(labpack_writer_t* writer, int64_t value);
+
 #ifdef __cplusplus
 }
 #endif
