@@ -98,6 +98,26 @@ MU_TEST(test_writer_end_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to end writer");
 }
 
+MU_TEST(test_writer_status_works)
+{
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer status is not OK");
+}
+
+MU_TEST(test_writer_status_message_works)
+{
+    mu_assert_string_eq("No Error", labpack_writer_status_message(writer));
+}
+
+MU_TEST(test_writer_is_ok_works)
+{
+    mu_assert(labpack_writer_is_ok(writer), "Writer is not OK");
+}
+
+MU_TEST(test_writer_is_error_works)
+{
+    mu_assert(!labpack_writer_is_error(writer), "Writer is unexpectedly OK");
+}
+
 MU_TEST(test_write_i8_works)
 {
     labpack_write_i8(writer, 127);
@@ -144,6 +164,16 @@ MU_TEST_SUITE(writer_begin_and_end)
     MU_RUN_TEST(test_writer_end_works);
 }
 
+MU_TEST_SUITE(writer_status)
+{
+    MU_SUITE_CONFIGURE(&before_each, &after_each);
+
+    MU_RUN_TEST(test_writer_status_works);
+    MU_RUN_TEST(test_writer_status_message_works);
+    MU_RUN_TEST(test_writer_is_ok_works);
+    MU_RUN_TEST(test_writer_is_error_works);
+}
+
 MU_TEST_SUITE(write_types)
 {
     MU_SUITE_CONFIGURE(&before_each, &after_each);
@@ -160,6 +190,7 @@ main(int argc, char* argv[])
 {
 	MU_RUN_SUITE(writer_create_and_destroy);
 	MU_RUN_SUITE(writer_begin_and_end);
+    MU_RUN_SUITE(writer_status);
 	MU_RUN_SUITE(write_types);
 	MU_REPORT();
 	return minunit_fail;
