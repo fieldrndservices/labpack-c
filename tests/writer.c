@@ -214,6 +214,13 @@ MU_TEST(test_write_nil_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to write nil");
 }
 
+MU_TEST(test_write_object_bytes_works)
+{
+    // TODO: Add writing actual data
+    labpack_write_object_bytes(writer, NULL, 0);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write object");
+}
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -259,6 +266,7 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_true_works);
     MU_RUN_TEST(test_write_false_works);
     MU_RUN_TEST(test_write_nil_works);
+    MU_RUN_TEST(test_write_object_bytes_works);
 }
 
 int 

@@ -225,6 +225,11 @@ LABPACK_API void labpack_write_false(labpack_writer_t* writer);
  */
 LABPACK_API void labpack_write_nil(labpack_writer_t* writer);
 
+/**
+ * Writes a pre-encoded MessagePack object to this encoder's data buffer.
+ */
+LABPACK_API void labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t size);
+
 #ifdef __cplusplus
 }
 #endif

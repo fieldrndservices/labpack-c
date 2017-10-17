@@ -259,3 +259,11 @@ labpack_write_nil(labpack_writer_t* writer)
     mpack_write_nil(writer->encoder);
 }
 
+void
+labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t size)
+{
+    assert(writer);
+    // TODO: Add check for NULL data
+    mpack_write_object_bytes(writer->encoder, data, size);
+}
+
