@@ -59,9 +59,6 @@ extern "C" {
 #  endif
 #endif
 
-#define LABPACK_SUCCESS 0
-#define LABPACK_FAILURE -1
-
 /**
  * A MessagePack encoder.
  */
