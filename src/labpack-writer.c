@@ -224,3 +224,10 @@ labpack_write_float(labpack_writer_t* writer, float value)
     mpack_write_float(writer->encoder, value);
 }
 
+void
+labpack_write_double(labpack_writer_t* writer, double value)
+{
+    assert(writer);
+    mpack_write_double(writer->encoder, value);
+}
+

@@ -200,6 +200,11 @@ LABPACK_API void labpack_write_uint(labpack_writer_t* writer, uint64_t value);
  */
 LABPACK_API void labpack_write_float(labpack_writer_t* writer, float value);
 
+/**
+ * Writes a double to the encoder's MessagePack data buffer.
+ */
+LABPACK_API void labpack_write_double(labpack_writer_t* writer, double value);
+
 #ifdef __cplusplus
 }
 #endif

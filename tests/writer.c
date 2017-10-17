@@ -184,6 +184,12 @@ MU_TEST(test_write_float_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to write float");
 }
 
+MU_TEST(test_write_double_works)
+{
+    labpack_write_double(writer, 1.234567890);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write double");
+}
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -224,6 +230,7 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_u64_works);
     MU_RUN_TEST(test_write_uint_works);
     MU_RUN_TEST(test_write_float_works);
+    MU_RUN_TEST(test_write_double_works);
 }
 
 int 
