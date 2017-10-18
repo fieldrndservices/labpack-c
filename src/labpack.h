@@ -257,6 +257,72 @@ LABPACK_API void labpack_end_array(labpack_writer_t* writer);
  */
 LABPACK_API void labpack_end_map(labpack_writer_t* writer);
 
+/**
+ * Writes a string regardless of encoding. If the string is encoded UTF-8, then
+ * the <code>labpack_write_utf8</code> should be used instead. 
+ *
+ * This will return an error status if the <code>value</code> is NULL but the
+ * length is greater than zero (0). It is possible to write a NULL (empty)
+ * string if the length is zero.
+ */
+LABPACK_API void labpack_write_str(labpack_writer_t* writer, const char* value, uint32_t length);
+
+/**
+ * Writes a UTF-8 encoded string. This checks the validity of the encoding.
+ *
+ * This will return an error status if the <code>value</code> is NULL but the
+ * length is greater than zero (0). It is possible to write a NULL (empty)
+ * string if the length is zero.
+ *
+ * An error status will also occur if the <code>value</code> is not valid UTF-8.
+ */
+LABPACK_API void labpack_write_utf8(labpack_writer_t* writer, const char* value, uint32_t length);
+
+/**
+ * Writes a null-terminated string. The NUL character is not written.
+ *
+ * This will return an error status if the <code>value</code> is NULL. Use the
+ * <code>labpack_write_cstr_or_nil</code> function if NULL is possible.
+ */
+LABPACK_API void labpack_write_cstr(labpack_writer_t* writer, const char* value);
+
+/**
+ * Writes a null-terminated string or Nil if the value is NULL. The NUL
+ * character is not written.
+ */
+LABPACK_API void labpack_write_cstr_or_nil(labpack_writer_t* writer, const char* value);
+
+/**
+ * Writes a UTF-8 encoded, null-terminated string. The NUL character is not written.
+ *
+ * An error status will be set if the string is not valid UTF-8.
+ */
+LABPACK_API void labpack_write_utf8_cstr(labpack_writer_t* writer, const char* value);
+
+/**
+ * Writes a UTF-8 encoded, null-terminated string or nil if the
+ * <code>value</code> is NULL. The NUL character is no written.
+ *
+ * An error status will be set if the string is not valid UTF-8.
+ */
+LABPACK_API void labpack_write_utf8_cstr_or_nil(labpack_writer_t* writer, const char* value);
+
+/**
+ * Writes a binary blob.
+ *
+ * An error status will be set if the <code>data</code> is NULL but the
+ * <code>count</code> is greater than zero (0). This prevents a SEGFAULT.
+ */
+LABPACK_API void labpack_write_bin(labpack_writer_t* writer, const char* data, uint32_t count);
+
+/**
+ * Writes an extension type.
+ *
+ * An error status will be set if the <code>data</code> is NULL but the
+ * <code>count</code> is greater than zero (0). This prevents a SEGFAULT.
+ */
+LABPACK_API void labpack_write_ext(labpack_writer_t* writer, uint8_t type, const char* data, uint32_t count);
+
 #ifdef __cplusplus
 }
 #endif

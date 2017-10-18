@@ -36,6 +36,11 @@
 #include "labpack.h"
 
 static labpack_writer_t* writer = NULL;
+static const char* EXAMPLE_STRING = "It's like JSON, but fast and small.";
+static const uint32_t EXAMPLE_STRING_LENGTH = 35;
+static const uint32_t EXAMPLE_BINARY_COUNT = 4;
+static const char EXAMPLE_BINARY[EXAMPLE_BINARY_COUNT] = {0x00, 0x01, 0x02, 0x03};
+static const uint8_t EXAMPLE_EXT_TYPE = 2;
 
 // Example from the MessagePack home page (http://msgpack.org), i.e. '{"compact":true,"schema":0}'
 static const size_t MSGPACK_HOME_PAGE_EXAMPLE_LENGTH = 18;
@@ -237,6 +242,7 @@ MU_TEST(test_write_object_bytes_errors_with_wrong_size)
 {
     labpack_write_object_bytes(writer, NULL, 10);
     mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
 }
 
 MU_TEST(test_begin_and_end_array_works)
@@ -253,6 +259,121 @@ MU_TEST(test_begin_and_end_map_works)
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin map");
     labpack_end_map(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end map");
+}
+
+MU_TEST(test_write_str_works)
+{
+    labpack_write_str(writer, EXAMPLE_STRING, EXAMPLE_STRING_LENGTH);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_str_errors_with_wrong_size)
+{
+    labpack_write_str(writer, NULL, EXAMPLE_STRING_LENGTH);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
+}
+
+MU_TEST(test_write_utf8_works)
+{
+    labpack_write_str(writer, EXAMPLE_STRING, EXAMPLE_STRING_LENGTH);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_utf8_errors_with_wrong_size)
+{
+    labpack_write_str(writer, NULL, EXAMPLE_STRING_LENGTH);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
+}
+
+MU_TEST(test_write_cstr_works)
+{
+    labpack_write_cstr(writer, EXAMPLE_STRING);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_cstr_errors_with_null_value)
+{
+    labpack_write_cstr(writer, NULL);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
+}
+
+MU_TEST(test_write_cstr_or_nil_works)
+{
+    labpack_write_cstr_or_nil(writer, EXAMPLE_STRING);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_cstr_or_nil_works_with_null_value)
+{
+    labpack_write_cstr_or_nil(writer, NULL);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_utf8_cstr_works)
+{
+    labpack_write_utf8_cstr(writer, EXAMPLE_STRING);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_utf8_cstr_errors_with_null_value)
+{
+    labpack_write_utf8_cstr(writer, NULL);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
+}
+
+MU_TEST(test_write_utf8_cstr_or_nil_works)
+{
+    labpack_write_utf8_cstr_or_nil(writer, EXAMPLE_STRING);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_utf8_cstr_or_nil_works_with_null_value)
+{
+    labpack_write_utf8_cstr_or_nil(writer, NULL);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write string");
+}
+
+MU_TEST(test_write_bin_works)
+{
+    labpack_write_bin(writer, EXAMPLE_BINARY, EXAMPLE_BINARY_COUNT);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write binary data");
+}
+
+MU_TEST(test_write_bin_works_with_null_data)
+{
+    labpack_write_bin(writer, NULL, 0);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write binary data");
+}
+
+MU_TEST(test_write_bin_errors_with_wrong_count)
+{
+    labpack_write_bin(writer, NULL, EXAMPLE_BINARY_COUNT);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
+}
+
+MU_TEST(test_write_ext_works)
+{
+    labpack_write_ext(writer, EXAMPLE_EXT_TYPE, EXAMPLE_BINARY, EXAMPLE_BINARY_COUNT);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write binary data");
+}
+
+MU_TEST(test_write_ext_works_with_null_data)
+{
+    labpack_write_ext(writer, EXAMPLE_EXT_TYPE, NULL, 0);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to write binary data");
+}
+
+
+MU_TEST(test_write_ext_errors_with_wrong_count)
+{
+    labpack_write_ext(writer, EXAMPLE_EXT_TYPE, NULL, EXAMPLE_BINARY_COUNT);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
 }
 
 MU_TEST_SUITE(writer_create_and_destroy) 
@@ -313,6 +434,30 @@ MU_TEST_SUITE(arrays_and_maps)
     MU_RUN_TEST(test_begin_and_end_map_works);
 }
 
+MU_TEST_SUITE(data_helpers)
+{
+    MU_SUITE_CONFIGURE(&before_each, &after_each);
+
+    MU_RUN_TEST(test_write_str_works);
+    MU_RUN_TEST(test_write_str_errors_with_wrong_size);
+    MU_RUN_TEST(test_write_utf8_works);
+    MU_RUN_TEST(test_write_utf8_errors_with_wrong_size);
+    MU_RUN_TEST(test_write_cstr_works);
+    MU_RUN_TEST(test_write_cstr_errors_with_null_value);
+    MU_RUN_TEST(test_write_cstr_or_nil_works);
+    MU_RUN_TEST(test_write_cstr_or_nil_works_with_null_value);
+    MU_RUN_TEST(test_write_utf8_cstr_works);
+    MU_RUN_TEST(test_write_utf8_cstr_errors_with_null_value);
+    MU_RUN_TEST(test_write_utf8_cstr_or_nil_works);
+    MU_RUN_TEST(test_write_utf8_cstr_or_nil_works_with_null_value);
+    MU_RUN_TEST(test_write_bin_works);
+    MU_RUN_TEST(test_write_bin_works_with_null_data);
+    MU_RUN_TEST(test_write_bin_errors_with_wrong_count);
+    MU_RUN_TEST(test_write_ext_works);
+    MU_RUN_TEST(test_write_ext_works_with_null_data);
+    MU_RUN_TEST(test_write_ext_errors_with_wrong_count);
+}
+
 int 
 main(int argc, char* argv[]) 
 {
@@ -321,6 +466,7 @@ main(int argc, char* argv[])
     MU_RUN_SUITE(writer_status);
 	MU_RUN_SUITE(write_types);
     MU_RUN_SUITE(arrays_and_maps);
+    MU_RUN_SUITE(data_helpers);
 	MU_REPORT();
 	return minunit_fail;
 }

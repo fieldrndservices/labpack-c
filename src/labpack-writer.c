@@ -37,6 +37,10 @@
 #include "labpack.h"
 #include "labpack-writer-private.h"
 
+static const char* NULL_STRING_MESSAGE = "The string value cannot be NULL while the length is greater than zero (0)";
+static const char* NULL_DATA_MESSAGE = "The data cannot be NULL while the count is greater than zero (0)";
+static const char* NULL_CSTR_MESSAGE = "The NUL-terminated string value cannot be NULL";
+
 static labpack_writer_t OUT_OF_MEMORY_WRITER = {
     NULL,                                          // encoder
     NULL,                                          // buffer
@@ -297,5 +301,106 @@ labpack_end_map(labpack_writer_t* writer)
 {
     assert(writer);
     mpack_finish_map(writer->encoder);
+}
+
+void
+labpack_write_str(labpack_writer_t* writer, const char* value, uint32_t length)
+{
+    assert(writer);
+    if (!value && length > 0) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_STRING_MESSAGE;
+        return;
+    }
+    mpack_write_str(writer->encoder, value, length);
+}
+
+void
+labpack_write_utf8(labpack_writer_t* writer, const char* value, uint32_t length)
+{
+    assert(writer);
+    if (!value && length > 0) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_STRING_MESSAGE;
+        return;
+    }
+    mpack_write_utf8(writer->encoder, value, length);
+    if (mpack_writer_error(writer->encoder) != mpack_ok) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
+        return;
+    }
+}
+
+void
+labpack_write_cstr(labpack_writer_t* writer, const char* value)
+{
+    assert(writer);
+    if (!value) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_CSTR_MESSAGE;
+        return;
+    }
+    mpack_write_cstr(writer->encoder, value);
+}
+
+void
+labpack_write_cstr_or_nil(labpack_writer_t* writer, const char* value)
+{
+    assert(writer);
+    mpack_write_cstr_or_nil(writer->encoder, value);
+}
+
+void
+labpack_write_utf8_cstr(labpack_writer_t* writer, const char* value)
+{
+    assert(writer);
+    if (!value) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_CSTR_MESSAGE;
+        return;
+    }
+    mpack_write_utf8_cstr(writer->encoder, value);
+    if (mpack_writer_error(writer->encoder) != mpack_ok) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
+        return;
+    }
+}
+
+void
+labpack_write_utf8_cstr_or_nil(labpack_writer_t* writer, const char* value)
+{
+    assert(writer);
+    mpack_write_utf8_cstr_or_nil(writer->encoder, value);
+    if (mpack_writer_error(writer->encoder) != mpack_ok) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
+        return;
+    }
+}
+
+void
+labpack_write_bin(labpack_writer_t* writer, const char* data, uint32_t count)
+{
+    assert(writer);
+    if (!data && count > 0) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_DATA_MESSAGE;
+        return;
+    }
+    mpack_write_bin(writer->encoder, data, count);
+}
+
+void
+labpack_write_ext(labpack_writer_t* writer, uint8_t type, const char* data, uint32_t count)
+{
+    assert(writer);
+    if (!data && count > 0) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_DATA_MESSAGE;
+        return;
+    }
+    mpack_write_ext(writer->encoder, type, data, count);
 }
 
