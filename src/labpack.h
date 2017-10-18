@@ -321,7 +321,47 @@ LABPACK_API void labpack_write_bin(labpack_writer_t* writer, const char* data, u
  * An error status will be set if the <code>data</code> is NULL but the
  * <code>count</code> is greater than zero (0). This prevents a SEGFAULT.
  */
-LABPACK_API void labpack_write_ext(labpack_writer_t* writer, uint8_t type, const char* data, uint32_t count);
+LABPACK_API void labpack_write_ext(labpack_writer_t* writer, int8_t type, const char* data, uint32_t count);
+
+/**
+ * Begins writing a string in chunks.
+ */
+LABPACK_API void labpack_begin_str(labpack_writer_t* writer, uint32_t count);
+
+/**
+ * Begins writing a binary blob in chunks.
+ */
+LABPACK_API void labpack_begin_bin(labpack_writer_t* writer, uint32_t count);
+
+/**
+ * Begins writing an extension type in chunks.
+ */
+LABPACK_API void labpack_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count);
+
+/**
+ * Writes a chunk of bytes for a string, binary, or extension type. This should
+ * be used after using one of the cooresponding <code>labpack_begin_*</code>
+ * functions to write a string, binary blob, or extension type in chunks.
+ *
+ * An error status will be set if the <code>data</code> is NULL but the the
+ * <code>count</code> is greater than zero (0) to prevent a SEGFAULT.
+ */
+LABPACK_API void labpack_write_bytes(labpack_writer_t* writer, const char* data, size_t count);
+
+/**
+ * Ends writing a string in chunks.
+ */
+LABPACK_API void labpack_end_str(labpack_writer_t* writer);
+
+/**
+ * Ends writing a binary blob in chunks.
+ */
+LABPACK_API void labpack_end_bin(labpack_writer_t* writer);
+
+/**
+ * Ends writing an extension type in chunks.
+ */
+LABPACK_API void labpack_end_ext(labpack_writer_t* writer);
 
 #ifdef __cplusplus
 }

@@ -393,7 +393,7 @@ labpack_write_bin(labpack_writer_t* writer, const char* data, uint32_t count)
 }
 
 void
-labpack_write_ext(labpack_writer_t* writer, uint8_t type, const char* data, uint32_t count)
+labpack_write_ext(labpack_writer_t* writer, int8_t type, const char* data, uint32_t count)
 {
     assert(writer);
     if (!data && count > 0) {
@@ -403,4 +403,60 @@ labpack_write_ext(labpack_writer_t* writer, uint8_t type, const char* data, uint
     }
     mpack_write_ext(writer->encoder, type, data, count);
 }
+
+void
+labpack_begin_str(labpack_writer_t* writer, uint32_t count)
+{
+    assert(writer);
+    mpack_start_str(writer->encoder, count);
+}
+
+void
+labpack_begin_bin(labpack_writer_t* writer, uint32_t count)
+{
+    assert(writer);
+    mpack_start_bin(writer->encoder, count);
+}
+
+void
+labpack_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count)
+{
+    assert(writer);
+    mpack_start_ext(writer->encoder, type, count);
+}
+
+void
+labpack_write_bytes(labpack_writer_t* writer, const char* data, size_t count)
+{
+    assert(writer);
+    if (!data && count > 0) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = NULL_DATA_MESSAGE;
+        return;
+    }
+    mpack_write_bytes(writer->encoder, data, count);
+}
+
+void
+labpack_end_str(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_finish_str(writer->encoder);
+}
+
+void
+labpack_end_bin(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_finish_bin(writer->encoder);
+}
+
+void
+labpack_end_ext(labpack_writer_t* writer)
+{
+    assert(writer);
+    mpack_finish_ext(writer->encoder);
+}
+
+// TODO: Add `mpack_finish_type` wrapper
 
