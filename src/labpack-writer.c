@@ -34,7 +34,10 @@
 
 #include <assert.h>
 
+#include "mpack.h"
+
 #include "labpack.h"
+#include "labpack-private.h"
 #include "labpack-writer-private.h"
 
 static const char* NULL_STRING_MESSAGE = "The string value cannot be NULL while the length is greater than zero (0)";
@@ -462,33 +465,6 @@ void
 labpack_end_type(labpack_writer_t* writer, labpack_type_t type)
 {
     assert(writer);
-    // TODO: Create an internal conversion function between labpack and mpack types
-    // TODO: Replace with internal conversion function
-    switch (type) {
-        case LABPACK_TYPE_NIL:
-            mpack_finish_type(writer->encoder, mpack_type_nil); break;
-        case LABPACK_TYPE_BOOL:
-            mpack_finish_type(writer->encoder, mpack_type_bool); break;
-        case LABPACK_TYPE_FLOAT:
-            mpack_finish_type(writer->encoder, mpack_type_float); break;
-        case LABPACK_TYPE_DOUBLE:
-            mpack_finish_type(writer->encoder, mpack_type_double); break;
-        case LABPACK_TYPE_INT:
-            mpack_finish_type(writer->encoder, mpack_type_int); break;
-        case LABPACK_TYPE_UINT:
-            mpack_finish_type(writer->encoder, mpack_type_uint); break;
-        case LABPACK_TYPE_STR:
-            mpack_finish_type(writer->encoder, mpack_type_str); break;
-        case LABPACK_TYPE_BIN:
-            mpack_finish_type(writer->encoder, mpack_type_bin); break;
-        case LABPACK_TYPE_EXT:
-            mpack_finish_type(writer->encoder, mpack_type_ext); break;
-        case LABPACK_TYPE_ARRAY:
-            mpack_finish_type(writer->encoder, mpack_type_array); break;
-        case LABPACK_TYPE_MAP:
-            mpack_finish_type(writer->encoder, mpack_type_map); break;
-        default:            
-            assert("Unknown type");
-    }
+    mpack_finish_type(writer->encoder, labpack_to_mpack_type(type));
 }
 

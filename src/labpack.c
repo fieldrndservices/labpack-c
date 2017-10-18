@@ -32,3 +32,40 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
+#include <assert.h>
+
+#include "mpack.h"
+
+#include "labpack-private.h"
+
+mpack_type_t
+labpack_to_mpack_type(labpack_type_t type)
+{
+    switch (type) {
+        case LABPACK_TYPE_NIL:
+            return mpack_type_nil;
+        case LABPACK_TYPE_BOOL:
+            return mpack_type_bool;
+        case LABPACK_TYPE_FLOAT:
+            return mpack_type_float;
+        case LABPACK_TYPE_DOUBLE:
+            return mpack_type_double;
+        case LABPACK_TYPE_INT:
+            return mpack_type_int;
+        case LABPACK_TYPE_UINT:
+            return mpack_type_uint;
+        case LABPACK_TYPE_STR:
+            return mpack_type_str;
+        case LABPACK_TYPE_BIN:
+            return mpack_type_bin;
+        case LABPACK_TYPE_EXT:
+            return mpack_type_ext;
+        case LABPACK_TYPE_ARRAY:
+            return mpack_type_array;
+        case LABPACK_TYPE_MAP:
+            return mpack_type_map;
+        default:            
+            assert("Unknown type");
+    }
+}
+
