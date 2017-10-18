@@ -76,6 +76,23 @@ typedef enum _labpack_status {
 } labpack_status_t;
 
 /**
+ * Different MessagePack data (or tag) types. 
+ */
+typedef enum _labpack_type {
+    LABPACK_TYPE_NIL,
+    LABPACK_TYPE_BOOL,
+    LABPACK_TYPE_FLOAT,
+    LABPACK_TYPE_DOUBLE,
+    LABPACK_TYPE_INT,
+    LABPACK_TYPE_UINT,
+    LABPACK_TYPE_STR,
+    LABPACK_TYPE_BIN,
+    LABPACK_TYPE_EXT,
+    LABPACK_TYPE_ARRAY,
+    LABPACK_TYPE_MAP
+} labpack_type_t;
+
+/**
  * Gets an integer representation of the status. Errors are negative values,
  * warnings are positive values, and zero (0) is no error or warning, i.e.
  * "OK".
@@ -362,6 +379,11 @@ LABPACK_API void labpack_end_bin(labpack_writer_t* writer);
  * Ends writing an extension type in chunks.
  */
 LABPACK_API void labpack_end_ext(labpack_writer_t* writer);
+
+/**
+ * Ends writing any type.
+ */
+LABPACK_API void labpack_end_type(labpack_writer_t* writer, labpack_type_t type);
 
 #ifdef __cplusplus
 }

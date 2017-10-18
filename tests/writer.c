@@ -417,6 +417,13 @@ MU_TEST(test_write_bytes_errors_with_wrong_count)
     labpack_end_str(writer);
 }
 
+MU_TEST(test_end_type_works)
+{
+    labpack_begin_str(writer, 0);
+    labpack_end_type(writer, LABPACK_TYPE_STR);
+    mu_assert(labpack_writer_is_ok(writer), "Failed to end type"); 
+}
+
 MU_TEST_SUITE(writer_create_and_destroy) 
 {
     MU_RUN_TEST(test_writer_sanity_check);
@@ -508,6 +515,7 @@ MU_TEST_SUITE(chunked_data)
     MU_RUN_TEST(test_begin_and_end_ext_works);
     MU_RUN_TEST(test_write_bytes_works);
     MU_RUN_TEST(test_write_bytes_errors_with_wrong_count);
+    MU_RUN_TEST(test_end_type_works);
 }
 
 int 
