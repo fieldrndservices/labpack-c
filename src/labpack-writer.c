@@ -75,15 +75,15 @@ labpack_writer_init(labpack_writer_t* writer)
     writer->size = 0;
 }
 
-labpack_writer_t*
-labpack_writer_create() 
+void
+labpack_writer_create(labpack_writer_t** handle) 
 {
     labpack_writer_t* writer = malloc(sizeof(labpack_writer_t));
     if (writer == NULL) {
         return &OUT_OF_MEMORY_WRITER;
     }
     labpack_writer_init(writer);
-    return writer;
+    *handle = writer;
 }
 
 void
