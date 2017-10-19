@@ -151,7 +151,24 @@ size_t
 labpack_writer_buffer_size(labpack_writer_t* writer)
 {
     assert(writer);
-    return mpack_writer_buffer_used(writer->encoder);
+    return writer->size;
+}
+
+void
+labpack_writer_buffer_data(labpack_writer_t* writer, char* buffer)
+{
+    assert(writer);
+    if (!buffer) {
+        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+        writer->status_message = "The buffer cannot be NULL";
+        return;
+    }
+    if (!writer->buffer) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = "The encoder is not done";
+        return;
+    }
+    memcpy(buffer, writer->buffer, writer->size);
 }
 
 void

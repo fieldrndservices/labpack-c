@@ -159,6 +159,56 @@ MU_TEST(test_writer_is_error_works)
     mu_assert(!labpack_writer_is_error(writer), "Writer is unexpectedly OK");
 }
 
+MU_TEST(test_writer_buffer_size_works)
+{
+    labpack_writer_begin(writer);
+    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    labpack_writer_end(writer);
+    size_t size = labpack_writer_buffer_size(writer);
+    mu_assert(size == MSGPACK_HOME_PAGE_EXAMPLE_LENGTH, "Actual value does not match expected value");
+}
+
+MU_TEST(test_writer_buffer_size_works_without_end)
+{
+    labpack_writer_begin(writer);
+    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    size_t size = labpack_writer_buffer_size(writer);
+    mu_assert(size == 0, "Actual value does not match expected value");
+    labpack_writer_end(writer);
+}
+
+MU_TEST(test_writer_buffer_data_works)
+{
+    labpack_writer_begin(writer);
+    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    labpack_writer_end(writer);
+    size_t size = labpack_writer_buffer_size(writer);
+    char buffer[size];
+    labpack_writer_buffer_data(writer, buffer);
+    mu_assert(!memcmp(buffer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, size), "Actual value does not match expected value");
+}
+
+MU_TEST(test_writer_buffer_data_errors_without_end)
+{
+    labpack_writer_begin(writer);
+    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    char buffer[MSGPACK_HOME_PAGE_EXAMPLE_LENGTH];
+    labpack_writer_buffer_data(writer, buffer);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_ENCODER, "Error status is not correct");
+    labpack_writer_end(writer);
+}
+
+MU_TEST(test_writer_buffer_data_errors_with_null)
+{
+    labpack_writer_begin(writer);
+    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    labpack_writer_buffer_data(writer, NULL);
+    mu_assert(labpack_writer_is_error(writer), "Does not error when it should");
+    mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Error status is not correct");
+    labpack_writer_end(writer);
+}
+
 MU_TEST(test_write_i8_works)
 {
     labpack_write_i8(writer, 127);
@@ -474,6 +524,17 @@ MU_TEST_SUITE(writer_begin_and_end)
     MU_RUN_TEST(test_writer_end_works);
 }
 
+MU_TEST_SUITE(writer_buffer)
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_writer_buffer_size_works);
+    MU_RUN_TEST(test_writer_buffer_size_works_without_end);
+    MU_RUN_TEST(test_writer_buffer_data_works);
+    MU_RUN_TEST(test_writer_buffer_data_errors_without_end);
+    MU_RUN_TEST(test_writer_buffer_data_errors_with_null);
+}
+
 MU_TEST_SUITE(writer_status)
 {
     MU_SUITE_CONFIGURE((void*)&before_each, (void*)&after_each);
@@ -561,6 +622,7 @@ main(int argc, char* argv[])
 {
     MU_RUN_SUITE(writer_create_and_destroy);
     MU_RUN_SUITE(writer_begin_and_end);
+    MU_RUN_SUITE(writer_buffer);
     MU_RUN_SUITE(writer_status);
     MU_RUN_SUITE(write_types);
     MU_RUN_SUITE(arrays_and_maps);

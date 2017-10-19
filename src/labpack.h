@@ -175,11 +175,22 @@ LABPACK_API void labpack_writer_begin(labpack_writer_t* writer);
 LABPACK_API void labpack_writer_end(labpack_writer_t* writer);
 
 /**
- * Gets the number of bytes currently stored in the internal buffer after
- * encoding. In other words, gets the length in bytes of the encoded
- * MessagePack data.
+ * Gets the number of bytes for the encoded MessagePack data. The size will be
+ * zero (0) until after the <code>labpack_writer_end</code> function has been
+ * called. Once the <code>labpack_writer_end</code> function has been called
+ * the size is changed to the number of bytes for the encoded MessagePack data
+ * assuming no errors.
  */
 LABPACK_API size_t labpack_writer_buffer_size(labpack_writer_t* writer);
+
+/**
+ * Gets the encoded MessagePack data. It is the responsibility of the user to
+ * ensure enough memory has been allocated for the contents to be copied from
+ * the internal buffer to the memory pointed to by the <code>buffer</code>
+ * parameter. The <code>labpack_writer_buffer_size</code> should be used to
+ * determine the amount of memory for the buffer.
+ */
+LABPACK_API void labpack_writer_buffer_data(labpack_writer_t* writer, char* buffer);
 
 /**
  * Writes a signed 8-bit integer to the encoder's MessagePack data buffer.
