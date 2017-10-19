@@ -32,64 +32,42 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-#include <assert.h>
+#include "minunit.h"
+#include "labpack.h"
 
-#include "mpack.h"
-
-#include "labpack-private.h"
-
-mpack_type_t
-labpack_to_mpack_type(labpack_type_t type)
+MU_TEST(test_version_works)
 {
-    switch (type) {
-        case LABPACK_TYPE_NIL:
-            return mpack_type_nil;
-        case LABPACK_TYPE_BOOL:
-            return mpack_type_bool;
-        case LABPACK_TYPE_FLOAT:
-            return mpack_type_float;
-        case LABPACK_TYPE_DOUBLE:
-            return mpack_type_double;
-        case LABPACK_TYPE_INT:
-            return mpack_type_int;
-        case LABPACK_TYPE_UINT:
-            return mpack_type_uint;
-        case LABPACK_TYPE_STR:
-            return mpack_type_str;
-        case LABPACK_TYPE_BIN:
-            return mpack_type_bin;
-        case LABPACK_TYPE_EXT:
-            return mpack_type_ext;
-        case LABPACK_TYPE_ARRAY:
-            return mpack_type_array;
-        case LABPACK_TYPE_MAP:
-            return mpack_type_map;
-        default:            
-            assert("Unknown type");
-    }
+    mu_assert_string_eq(labpack_version(), VERSION);
 }
 
-const char*
-labpack_version()
+MU_TEST(test_version_major_works)
 {
-    return VERSION;
+    mu_assert(labpack_version_major() == VERSION_MAJOR, "Version major number does not match");
 }
 
-unsigned int
-labpack_version_major()
+MU_TEST(test_version_minor_works)
 {
-    return VERSION_MAJOR;
+    mu_assert(labpack_version_minor() == VERSION_MINOR, "Version minor number does not match");
 }
 
-unsigned int
-labpack_version_minor()
+MU_TEST(test_version_patch_works)
 {
-    return VERSION_MINOR;
+    mu_assert(labpack_version_patch() == VERSION_PATCH, "Version patch number does not match");
 }
 
-unsigned int
-labpack_version_patch()
+MU_TEST_SUITE(versions)
 {
-    return VERSION_PATCH;
+    MU_RUN_TEST(test_version_works);
+    MU_RUN_TEST(test_version_major_works);
+    MU_RUN_TEST(test_version_minor_works);
+    MU_RUN_TEST(test_version_patch_works);
+}
+
+int 
+main(int argc, char* argv[]) 
+{
+    MU_RUN_SUITE(versions);
+	MU_REPORT();
+	return minunit_fail;
 }
 

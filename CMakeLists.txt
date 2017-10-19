@@ -22,6 +22,13 @@ else()
     set(OUTPUT_NAME ${CMAKE_PROJECT_NAME})
 endif()
 
+add_definitions(
+    -DVERSION="${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATH}"
+    -DVERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+    -DVERSION_MINOR=${PROJECT_VERSION_MINOR}
+    -DVERSION_PATCH=${PROJECT_VERSION_PATCH}
+)
+
 add_subdirectory(src)
 enable_testing()
 add_subdirectory(tests)

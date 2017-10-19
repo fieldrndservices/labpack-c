@@ -93,6 +93,26 @@ typedef enum _labpack_type {
 } labpack_type_t;
 
 /**
+ * Gets the library version number in Major.Minor.Patch notation.
+ */
+LABPACK_API const char* labpack_version();
+
+/**
+ * Gets the library major version number as an integer.
+ */
+LABPACK_API unsigned int labpack_version_major();
+
+/**
+ * Gets the library minor version number as an integer.
+ */
+LABPACK_API unsigned int labpack_version_minor();
+
+/**
+ * Gets the library patch version number as an integer.
+ */
+LABPACK_API unsigned int labpack_version_patch();
+
+/**
  * Gets an integer representation of the status. Errors are negative values,
  * warnings are positive values, and zero (0) is no error or warning, i.e.
  * "OK".

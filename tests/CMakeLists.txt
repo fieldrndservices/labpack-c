@@ -1,6 +1,7 @@
 set(SOURCES
     status.c
     writer.c
+    version.c
 )
 
 include_directories(${labpack_SOURCE_DIR}/src)
