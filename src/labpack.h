@@ -109,7 +109,7 @@ LABPACK_API const char* labpack_status_string(labpack_status_t status);
  * a memory leak, the <code>labpack_writer_destroy</code> function should be
  * used to free the memory.
  */
-LABPACK_API void labpack_writer_create(labpack_writer_t** handle);
+LABPACK_API labpack_writer_t* labpack_writer_create();
 
 /**
  * Destroys (frees) a MessagePack encoder. Frees the memory allocated during

@@ -53,7 +53,7 @@ static const char MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT[MSGPACK_HOME_PAGE_EXAMPLE_LEN
 static void
 setup()
 {
-    labpack_writer_create(&writer);
+    writer = labpack_writer_create();
 }
 
 static void
@@ -99,8 +99,7 @@ MU_TEST(test_writer_sanity_check)
 
 MU_TEST(test_writer_create_works)
 {
-    labpack_writer_t* writer = NULL;
-    labpack_writer_create(&writer);
+    labpack_writer_t* writer = labpack_writer_create();
     mu_assert(writer, "Writer is NULL");
     mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_OK, "Writer is not OK");
     labpack_writer_destroy(writer);
@@ -108,8 +107,7 @@ MU_TEST(test_writer_create_works)
 
 MU_TEST(test_writer_destroy_works)
 {
-    labpack_writer_t* writer = NULL;
-    labpack_writer_create(&writer);
+    labpack_writer_t* writer = labpack_writer_create();
     labpack_writer_destroy(writer);
 }
 
