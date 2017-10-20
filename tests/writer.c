@@ -114,6 +114,9 @@ MU_TEST(test_writer_begin_works)
 MU_TEST(test_writer_end_works)
 {
     labpack_writer_begin(writer);
+    // Need to write some data to avoid assertion error on Windows. Instead of
+    // the pre-encoded data used for the `begin` test, a simple integer is
+    // used. This is to mimic a similar test for a wrapper library in LabVIEW.
     labpack_write_i8(writer, 127);
     labpack_writer_end(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end writer");
