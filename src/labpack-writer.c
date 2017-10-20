@@ -89,11 +89,11 @@ labpack_writer_create()
 void
 labpack_writer_destroy(labpack_writer_t* writer)
 {
-    free(writer->encoder);
-    writer->encoder = NULL;
+    writer->size = 0;
     free(writer->buffer);
     writer->buffer = NULL;
-    writer->size = 0;
+    free(writer->encoder);
+    writer->encoder = NULL;
     free(writer);
 }
 
