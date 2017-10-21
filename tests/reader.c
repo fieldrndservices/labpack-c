@@ -126,6 +126,16 @@ MU_TEST(test_read_u16_works)
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
+MU_TEST(test_read_u32_works)
+{
+    const uint8_t EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    uint8_t actual = labpack_read_u32(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -159,6 +169,7 @@ MU_TEST_SUITE(basic_number_functions)
 
     MU_RUN_TEST(test_read_u8_works);
     MU_RUN_TEST(test_read_u16_works);
+    MU_RUN_TEST(test_read_u32_works);
 }
 
 int 
