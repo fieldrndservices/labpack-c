@@ -138,3 +138,10 @@ labpack_read_u8(labpack_reader_t* reader)
     return mpack_expect_u8(reader->decoder);
 }
 
+uint16_t
+labpack_read_u16(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_u16(reader->decoder);
+}
+
