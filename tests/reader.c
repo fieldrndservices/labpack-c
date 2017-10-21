@@ -118,9 +118,9 @@ MU_TEST(test_read_u8_works)
 
 MU_TEST(test_read_u16_works)
 {
-    const uint8_t EXPECTED = 1;
+    const uint16_t EXPECTED = 1;
     labpack_reader_begin(reader, "\x01", 1);
-    uint8_t actual = labpack_read_u16(reader);
+    uint16_t actual = labpack_read_u16(reader);
     labpack_reader_end(reader);
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
@@ -128,9 +128,9 @@ MU_TEST(test_read_u16_works)
 
 MU_TEST(test_read_u32_works)
 {
-    const uint8_t EXPECTED = 1;
+    const uint32_t EXPECTED = 1;
     labpack_reader_begin(reader, "\x01", 1);
-    uint8_t actual = labpack_read_u32(reader);
+    uint32_t actual = labpack_read_u32(reader);
     labpack_reader_end(reader);
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
@@ -138,9 +138,9 @@ MU_TEST(test_read_u32_works)
 
 MU_TEST(test_read_u64_works)
 {
-    const uint8_t EXPECTED = 1;
+    const uint64_t EXPECTED = 1;
     labpack_reader_begin(reader, "\x01", 1);
-    uint8_t actual = labpack_read_u64(reader);
+    uint64_t actual = labpack_read_u64(reader);
     labpack_reader_end(reader);
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
@@ -148,14 +148,63 @@ MU_TEST(test_read_u64_works)
 
 MU_TEST(test_read_uint_works)
 {
-    const uint8_t EXPECTED = 1;
+    const unsigned int EXPECTED = 1;
     labpack_reader_begin(reader, "\x01", 1);
-    uint8_t actual = labpack_read_uint(reader);
+    unsigned int actual = labpack_read_uint(reader);
     labpack_reader_end(reader);
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
+MU_TEST(test_read_i8_works)
+{
+    const int8_t EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    int8_t actual = labpack_read_i8(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_i16_works)
+{
+    const int16_t EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    int16_t actual = labpack_read_i16(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_i32_works)
+{
+    const int32_t EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    int32_t actual = labpack_read_i32(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_i64_works)
+{
+    const int64_t EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    int64_t actual = labpack_read_i64(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_int_works)
+{
+    const int EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    int actual = labpack_read_int(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
 
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
@@ -193,6 +242,11 @@ MU_TEST_SUITE(basic_number_functions)
     MU_RUN_TEST(test_read_u32_works);
     MU_RUN_TEST(test_read_u64_works);
     MU_RUN_TEST(test_read_uint_works);
+    MU_RUN_TEST(test_read_i8_works);
+    MU_RUN_TEST(test_read_i16_works);
+    MU_RUN_TEST(test_read_i32_works);
+    MU_RUN_TEST(test_read_i64_works);
+    MU_RUN_TEST(test_read_int_works);
 }
 
 int 

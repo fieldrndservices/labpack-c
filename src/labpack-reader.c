@@ -166,3 +166,38 @@ labpack_read_uint(labpack_reader_t* reader)
     return mpack_expect_uint(reader->decoder);
 }
 
+int8_t
+labpack_read_i8(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_i8(reader->decoder);
+}
+
+int16_t
+labpack_read_i16(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_i16(reader->decoder);
+}
+
+int32_t
+labpack_read_i32(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_i32(reader->decoder);
+}
+
+int64_t
+labpack_read_i64(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_i64(reader->decoder);
+}
+
+int
+labpack_read_int(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_int(reader->decoder);
+}
+

@@ -491,6 +491,31 @@ LABPACK_API uint64_t labpack_read_u64(labpack_reader_t* reader);
  */
 LABPACK_API unsigned int labpack_read_uint(labpack_reader_t* reader);
 
+/**
+ * Read a signed 8-bit integer.
+ */
+LABPACK_API int8_t labpack_read_i8(labpack_reader_t* reader);
+
+/**
+ * Read a signed 16-bit integer.
+ */
+LABPACK_API int16_t labpack_read_i16(labpack_reader_t* reader);
+
+/**
+ * Read a signed 32-bit integer.
+ */
+LABPACK_API int32_t labpack_read_i32(labpack_reader_t* reader);
+
+/**
+ * Read a signed 64-bit integer.
+ */
+LABPACK_API int64_t labpack_read_i64(labpack_reader_t* reader);
+
+/**
+ * Read a signed integer.
+ */
+LABPACK_API int labpack_read_int(labpack_reader_t* reader);
+
 #ifdef __cplusplus
 }
 #endif
