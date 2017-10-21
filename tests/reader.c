@@ -32,35 +32,56 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-#include <assert.h>
-
+#include "minunit.h"
 #include "labpack.h"
 
-static const char* UNKNOWN_STATUS = "Unknown Status";
+static labpack_reader_t* reader = NULL;
 
-int
-labpack_status_code(labpack_status_t status) {
-    switch (status) {
-        case LABPACK_STATUS_OK: return 0;
-        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return -1;
-        case LABPACK_STATUS_ERROR_NULL_VALUE: return -2;                                     
-        case LABPACK_STATUS_ERROR_ENCODER: return -3;
-        case LABPACK_STATUS_ERROR_DECODER: return -4;
-        default: assert(UNKNOWN_STATUS);
-    }
-    return 1;
+static void
+setup()
+{
+    reader = labpack_reader_create();
 }
 
-const char*
-labpack_status_string(labpack_status_t status) {
-    switch (status) {
-        case LABPACK_STATUS_OK: return "No Error";
-        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return "Out of Memory Error";
-        case LABPACK_STATUS_ERROR_NULL_VALUE: return "Null Value Error";
-        case LABPACK_STATUS_ERROR_ENCODER: return "Encoder Error";
-        case LABPACK_STATUS_ERROR_DECODER: return "Decoder Error";
-        default: assert(UNKNOWN_STATUS);
-    }
-    return UNKNOWN_STATUS;
+static void
+teardown()
+{
+    labpack_reader_destroy(reader);
+    reader = NULL;
+}
+
+MU_TEST(test_reader_sanity_check)
+{
+    labpack_reader_t* reader = NULL;
+    mu_assert(!reader, "Reader is not NULL");
+}
+
+MU_TEST(test_reader_create_works)
+{
+    labpack_reader_t* reader = labpack_reader_create();
+    mu_assert(reader, "Reader is NULL");
+    mu_assert(labpack_reader_status(reader) == LABPACK_STATUS_OK, "Reader is not OK");
+    labpack_reader_destroy(reader);
+}
+
+MU_TEST(test_reader_destroy_works)
+{
+    labpack_reader_t* reader = labpack_reader_create();
+    labpack_reader_destroy(reader);
+}
+
+MU_TEST_SUITE(reader_create_and_destroy) 
+{
+    MU_RUN_TEST(test_reader_sanity_check);
+	MU_RUN_TEST(test_reader_create_works);
+    MU_RUN_TEST(test_reader_destroy_works);
+}
+
+int 
+main(int argc, char* argv[]) 
+{
+    MU_RUN_SUITE(reader_create_and_destroy);
+	MU_REPORT();
+	return minunit_fail;
 }
 

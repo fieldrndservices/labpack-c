@@ -34,33 +34,69 @@
 
 #include <assert.h>
 
+#include "mpack.h"
+
 #include "labpack.h"
+#include "labpack-private.h"
+#include "labpack-reader-private.h"
 
-static const char* UNKNOWN_STATUS = "Unknown Status";
+static labpack_reader_t OUT_OF_MEMORY_READER = {
+    NULL,                                          // decoder
+    LABPACK_STATUS_ERROR_OUT_OF_MEMORY,            // status
+    "Not enough memory available to create reader" // status message
+};
 
-int
-labpack_status_code(labpack_status_t status) {
-    switch (status) {
-        case LABPACK_STATUS_OK: return 0;
-        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return -1;
-        case LABPACK_STATUS_ERROR_NULL_VALUE: return -2;                                     
-        case LABPACK_STATUS_ERROR_ENCODER: return -3;
-        case LABPACK_STATUS_ERROR_DECODER: return -4;
-        default: assert(UNKNOWN_STATUS);
+static void
+labpack_reader_reset_status(labpack_reader_t* reader)
+{
+    assert(reader);
+    reader->status = LABPACK_STATUS_OK;
+    reader->status_message = labpack_status_string(reader->status);
+}
+
+static void
+labpack_reader_init(labpack_reader_t* reader)
+{
+    assert(reader);
+    reader->decoder = malloc(sizeof(mpack_reader_t));
+    if (reader->decoder) {
+        labpack_reader_reset_status(reader);
+    } else {
+        reader->status = LABPACK_STATUS_ERROR_OUT_OF_MEMORY;
+        reader->status_message = "Not enough memory available to create internal decoder";
     }
-    return 1;
+}
+
+labpack_reader_t*
+labpack_reader_create()
+{
+    labpack_reader_t* reader = malloc(sizeof(labpack_reader_t));
+    if (reader == NULL) {
+        return &OUT_OF_MEMORY_READER;
+    }
+    labpack_reader_init(reader);
+    return reader;
+}
+
+void
+labpack_reader_destroy(labpack_reader_t* reader)
+{
+    free(reader->decoder);
+    reader->decoder = NULL;
+    free(reader);
+}
+
+labpack_status_t
+labpack_reader_status(labpack_reader_t* reader) 
+{
+    assert(reader);
+    return reader->status;
 }
 
 const char*
-labpack_status_string(labpack_status_t status) {
-    switch (status) {
-        case LABPACK_STATUS_OK: return "No Error";
-        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return "Out of Memory Error";
-        case LABPACK_STATUS_ERROR_NULL_VALUE: return "Null Value Error";
-        case LABPACK_STATUS_ERROR_ENCODER: return "Encoder Error";
-        case LABPACK_STATUS_ERROR_DECODER: return "Decoder Error";
-        default: assert(UNKNOWN_STATUS);
-    }
-    return UNKNOWN_STATUS;
+labpack_reader_status_message(labpack_reader_t* reader)
+{
+    assert(reader);
+    return reader->status_message;
 }
 

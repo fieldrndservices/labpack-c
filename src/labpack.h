@@ -65,6 +65,11 @@ extern "C" {
 typedef struct _labpack_writer labpack_writer_t;
 
 /**
+ * A MessagePack decoder.
+ */
+typedef struct _labpack_reader labpack_reader_t;
+
+/**
  * Status
  */
 typedef enum _labpack_status {
@@ -72,7 +77,8 @@ typedef enum _labpack_status {
 
     LABPACK_STATUS_ERROR_OUT_OF_MEMORY,
     LABPACK_STATUS_ERROR_NULL_VALUE,
-    LABPACK_STATUS_ERROR_ENCODER
+    LABPACK_STATUS_ERROR_ENCODER,
+    LABPACK_STATUS_ERROR_DECODER
 } labpack_status_t;
 
 /**
@@ -415,6 +421,26 @@ LABPACK_API void labpack_end_ext(labpack_writer_t* writer);
  * Ends writing any type.
  */
 LABPACK_API void labpack_end_type(labpack_writer_t* writer, labpack_type_t type);
+
+/**
+ * Creates (allocates) a new MessagePack decoder.
+ */
+LABPACK_API labpack_reader_t* labpack_reader_create();
+
+/**
+ * Destroys (frees) a MessagePack decoder.
+ */
+LABPACK_API void labpack_reader_destroy(labpack_reader_t* reader);
+
+/**
+ * Gets the latest status of the reader.
+ */
+LABPACK_API labpack_status_t labpack_reader_status(labpack_reader_t* reader);
+
+/**
+ * Gets the latest message of the reader.
+ */
+LABPACK_API const char* labpack_reader_status_message(labpack_reader_t* reader);
 
 #ifdef __cplusplus
 }

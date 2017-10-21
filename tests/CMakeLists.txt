@@ -1,4 +1,5 @@
 set(SOURCES
+    reader.c
     status.c
     writer.c
     version.c

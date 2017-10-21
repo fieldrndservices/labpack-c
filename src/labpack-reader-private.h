@@ -1,6 +1,6 @@
 /*
  * labpack - A LabVIEW-Friendly C library for encoding and decoding MessagePack
- * data
+ * data 
  *
  * Copyright (c) 2017 Field R&D Services, LLC. All Rights Reserved.
  *
@@ -32,35 +32,15 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-#include <assert.h>
+#ifndef LABPACK_READER_PRIVATE_H
+#define LABPACK_READER_PRIVATE_H
 
-#include "labpack.h"
+#include "mpack.h"
 
-static const char* UNKNOWN_STATUS = "Unknown Status";
+struct _labpack_reader {
+    mpack_reader_t* decoder;
+    labpack_status_t status;
+    const char* status_message;
+};
 
-int
-labpack_status_code(labpack_status_t status) {
-    switch (status) {
-        case LABPACK_STATUS_OK: return 0;
-        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return -1;
-        case LABPACK_STATUS_ERROR_NULL_VALUE: return -2;                                     
-        case LABPACK_STATUS_ERROR_ENCODER: return -3;
-        case LABPACK_STATUS_ERROR_DECODER: return -4;
-        default: assert(UNKNOWN_STATUS);
-    }
-    return 1;
-}
-
-const char*
-labpack_status_string(labpack_status_t status) {
-    switch (status) {
-        case LABPACK_STATUS_OK: return "No Error";
-        case LABPACK_STATUS_ERROR_OUT_OF_MEMORY: return "Out of Memory Error";
-        case LABPACK_STATUS_ERROR_NULL_VALUE: return "Null Value Error";
-        case LABPACK_STATUS_ERROR_ENCODER: return "Encoder Error";
-        case LABPACK_STATUS_ERROR_DECODER: return "Decoder Error";
-        default: assert(UNKNOWN_STATUS);
-    }
-    return UNKNOWN_STATUS;
-}
-
+#endif

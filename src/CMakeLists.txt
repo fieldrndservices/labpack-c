@@ -1,6 +1,7 @@
 set(SOURCE 
-    labpack.h
     labpack.c
+    labpack.h
+    labpack-reader.c
     labpack-status.c
     labpack-writer.c
     mpack.c
