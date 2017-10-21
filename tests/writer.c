@@ -34,21 +34,9 @@
 
 #include "minunit.h"
 #include "labpack.h"
-
-// The MSVC compiler complains if an integer constant literal is not used for
-// defining a static array size. Instead of using static const size_t
-// variables, macro definitions are used.
-#define EXAMPLE_BINARY_COUNT 4
-#define MSGPACK_HOME_PAGE_EXAMPLE_LENGTH 18 
+#include "private.h"
 
 static labpack_writer_t* writer = NULL;
-static const char* EXAMPLE_STRING = "It's like JSON, but fast and small.";
-static const uint32_t EXAMPLE_STRING_LENGTH = 35;
-static const char EXAMPLE_BINARY[EXAMPLE_BINARY_COUNT] = {0x00, 0x01, 0x02, 0x03};
-static const uint8_t EXAMPLE_EXT_TYPE = 2;
-
-// Example from the MessagePack home page (http://msgpack.org), i.e. '{"compact":true,"schema":0}'
-static const char MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT[MSGPACK_HOME_PAGE_EXAMPLE_LENGTH] = {0x82, 0xA7, 0x63, 0x6F, 0x6D, 0x70, 0x61, 0x63, 0x74, 0xC3, 0xA6, 0x73, 0x63, 0x68, 0x65, 0x6d, 0x61, 0x00};
 
 static void
 setup()

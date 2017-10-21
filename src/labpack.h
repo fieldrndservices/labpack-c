@@ -442,6 +442,35 @@ LABPACK_API labpack_status_t labpack_reader_status(labpack_reader_t* reader);
  */
 LABPACK_API const char* labpack_reader_status_message(labpack_reader_t* reader);
 
+/**
+ * Checks if the reader is OK.
+ */
+LABPACK_API bool labpack_reader_is_ok(labpack_reader_t* reader);
+
+/**
+ * Checks if the reader is in an error state.
+ */
+LABPACK_API bool labpack_reader_is_error(labpack_reader_t* reader);
+
+/**
+ * Begins reading and decoding MessagePack data.
+ */
+LABPACK_API void labpack_reader_begin(labpack_reader_t* reader, const char* data, size_t count);
+
+/**
+ * Ends reading and decoding MessagePack data. Frees resources and checks for
+ * any errors caused by incomplete decoding of compound elements (maps and
+ * arrays).
+ *
+ * An error status will be set if the reading is incomplete.
+ */
+LABPACK_API void labpack_reader_end(labpack_reader_t* reader);
+
+/**
+ * Read an unsigned 8-bit integer.
+ */
+LABPACK_API uint8_t labpack_read_u8(labpack_reader_t* reader);
+
 #ifdef __cplusplus
 }
 #endif

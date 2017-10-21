@@ -100,3 +100,41 @@ labpack_reader_status_message(labpack_reader_t* reader)
     return reader->status_message;
 }
 
+bool
+labpack_reader_is_ok(labpack_reader_t* reader)
+{
+    assert(reader);
+    return labpack_reader_status(reader) == LABPACK_STATUS_OK;
+}
+
+bool
+labpack_reader_is_error(labpack_reader_t* reader)
+{
+    assert(reader);
+    return labpack_reader_status(reader) != LABPACK_STATUS_OK;
+}
+
+void
+labpack_reader_begin(labpack_reader_t* reader, const char* data, size_t count)
+{
+    assert(reader);
+    mpack_reader_init_data(reader->decoder, data, count);
+}
+
+void
+labpack_reader_end(labpack_reader_t* reader)
+{
+    assert(reader);
+    if (mpack_reader_destroy(reader->decoder) != mpack_ok) {
+        reader->status = LABPACK_STATUS_ERROR_DECODER;
+        reader->status_message = mpack_error_to_string(mpack_reader_error(reader->decoder));
+    }
+}
+
+uint8_t
+labpack_read_u8(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_u8(reader->decoder);
+}
+

@@ -34,6 +34,7 @@
 
 #include "minunit.h"
 #include "labpack.h"
+#include "private.h"
 
 static labpack_reader_t* reader = NULL;
 
@@ -70,6 +71,20 @@ MU_TEST(test_reader_destroy_works)
     labpack_reader_destroy(reader);
 }
 
+MU_TEST(test_reader_begin_works)
+{
+    labpack_reader_begin(reader, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to begin reader");
+    labpack_reader_end(reader);
+}
+
+MU_TEST(test_reader_end_works)
+{
+    labpack_reader_begin(reader, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -77,10 +92,21 @@ MU_TEST_SUITE(reader_create_and_destroy)
     MU_RUN_TEST(test_reader_destroy_works);
 }
 
+MU_TEST_SUITE(reader_begin_and_end)
+{
+    // The explicit `void*` cast is needed to fix C4113 warnings when using the MSVC
+    // compiler on Windows. They are redundant on non-MSVC compilers.
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_reader_begin_works);
+    MU_RUN_TEST(test_reader_end_works);
+}
+
 int 
 main(int argc, char* argv[]) 
 {
     MU_RUN_SUITE(reader_create_and_destroy);
+    MU_RUN_SUITE(reader_begin_and_end);
 	MU_REPORT();
 	return minunit_fail;
 }
