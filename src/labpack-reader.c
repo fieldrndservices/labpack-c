@@ -152,3 +152,10 @@ labpack_read_u32(labpack_reader_t* reader)
     return mpack_expect_u32(reader->decoder);
 }
 
+uint64_t
+labpack_read_u64(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_u64(reader->decoder);
+}
+

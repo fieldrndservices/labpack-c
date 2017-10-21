@@ -481,6 +481,11 @@ LABPACK_API uint16_t labpack_read_u16(labpack_reader_t* reader);
  */
 LABPACK_API uint32_t labpack_read_u32(labpack_reader_t* reader);
 
+/**
+ * Read an unsigned 64-bit integer.
+ */
+LABPACK_API uint64_t labpack_read_u64(labpack_reader_t* reader);
+
 #ifdef __cplusplus
 }
 #endif
