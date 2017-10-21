@@ -37,6 +37,7 @@
 #include "private.h"
 
 static labpack_reader_t* reader = NULL;
+static const char* ACTUAL_DOES_NOT_MATCH_EXPECTED = "The actual value does not match the expected value";
 
 static void
 setup()
@@ -71,6 +72,26 @@ MU_TEST(test_reader_destroy_works)
     labpack_reader_destroy(reader);
 }
 
+MU_TEST(test_reader_status_works)
+{
+    mu_assert(labpack_reader_status(reader) == LABPACK_STATUS_OK, "Reader status is not OK");
+}
+
+MU_TEST(test_reader_status_message_works)
+{
+    mu_assert_string_eq("No Error", labpack_reader_status_message(reader));
+}
+
+MU_TEST(test_reader_is_ok_works)
+{
+    mu_assert(labpack_reader_is_ok(reader), "Reader is not OK");
+}
+
+MU_TEST(test_reader_is_error_works)
+{
+    mu_assert(!labpack_reader_is_error(reader), "Reader is unexpectedly OK");
+}
+
 MU_TEST(test_reader_begin_works)
 {
     labpack_reader_begin(reader, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
@@ -85,11 +106,31 @@ MU_TEST(test_reader_end_works)
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
 }
 
+MU_TEST(test_read_u8_works)
+{
+    const uint8_t EXPECTED = 1;
+    labpack_reader_begin(reader, "\x01", 1);
+    uint8_t actual = labpack_read_u8(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
 	MU_RUN_TEST(test_reader_create_works);
     MU_RUN_TEST(test_reader_destroy_works);
+}
+
+MU_TEST_SUITE(reader_status) 
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_reader_status_works);
+    MU_RUN_TEST(test_reader_status_message_works);
+    MU_RUN_TEST(test_reader_is_ok_works);
+    MU_RUN_TEST(test_reader_is_error_works);
 }
 
 MU_TEST_SUITE(reader_begin_and_end)
@@ -102,11 +143,20 @@ MU_TEST_SUITE(reader_begin_and_end)
     MU_RUN_TEST(test_reader_end_works);
 }
 
+MU_TEST_SUITE(basic_number_functions)
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_read_u8_works);
+}
+
 int 
 main(int argc, char* argv[]) 
 {
     MU_RUN_SUITE(reader_create_and_destroy);
+    MU_RUN_SUITE(reader_status);
     MU_RUN_SUITE(reader_begin_and_end);
+    MU_RUN_SUITE(basic_number_functions);
 	MU_REPORT();
 	return minunit_fail;
 }
