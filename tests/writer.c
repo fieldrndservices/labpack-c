@@ -298,17 +298,17 @@ MU_TEST(test_write_object_bytes_errors_with_wrong_size)
 
 MU_TEST(test_begin_and_end_array_works)
 {
-    labpack_begin_array(writer, 0);
+    labpack_writer_begin_array(writer, 0);
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin array");
-    labpack_end_array(writer);
+    labpack_writer_end_array(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end array");
 }
 
 MU_TEST(test_begin_and_end_map_works)
 {
-    labpack_begin_map(writer, 0);
+    labpack_writer_begin_map(writer, 0);
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin map");
-    labpack_end_map(writer);
+    labpack_writer_end_map(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end map");
 }
 
@@ -429,53 +429,53 @@ MU_TEST(test_write_ext_errors_with_wrong_count)
 
 MU_TEST(test_begin_and_end_str_works)
 {
-    labpack_begin_str(writer, EXAMPLE_STRING_LENGTH);
+    labpack_writer_begin_str(writer, EXAMPLE_STRING_LENGTH);
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin writing string in chunks");
     labpack_write_bytes(writer, EXAMPLE_STRING, EXAMPLE_STRING_LENGTH);
-    labpack_end_str(writer);
+    labpack_writer_end_str(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end writing string in chunks");
 }
 
 MU_TEST(test_begin_and_end_bin_works)
 {
-    labpack_begin_bin(writer, EXAMPLE_BINARY_COUNT);
+    labpack_writer_begin_bin(writer, EXAMPLE_BINARY_COUNT);
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin writing binary blob in chunks");
     labpack_write_bytes(writer, EXAMPLE_BINARY, EXAMPLE_BINARY_COUNT);
-    labpack_end_bin(writer);
+    labpack_writer_end_bin(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end writing binary blob in chunks");
 }
 
 MU_TEST(test_begin_and_end_ext_works)
 {
-    labpack_begin_ext(writer, EXAMPLE_EXT_TYPE, EXAMPLE_BINARY_COUNT);
+    labpack_writer_begin_ext(writer, EXAMPLE_EXT_TYPE, EXAMPLE_BINARY_COUNT);
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin writing extension type in chunks");
     labpack_write_bytes(writer, EXAMPLE_BINARY, EXAMPLE_BINARY_COUNT);
-    labpack_end_ext(writer);
+    labpack_writer_end_ext(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end writing extension type in chunks");
 }
 
 MU_TEST(test_write_bytes_works)
 {
-    labpack_begin_str(writer, EXAMPLE_STRING_LENGTH);
+    labpack_writer_begin_str(writer, EXAMPLE_STRING_LENGTH);
     labpack_write_bytes(writer, EXAMPLE_STRING, EXAMPLE_STRING_LENGTH);
     mu_assert(labpack_writer_is_ok(writer), "Failed to write bytes");
-    labpack_end_str(writer);
+    labpack_writer_end_str(writer);
 }
 
 MU_TEST(test_write_bytes_errors_with_wrong_count)
 {
-    labpack_begin_str(writer, EXAMPLE_STRING_LENGTH);
+    labpack_writer_begin_str(writer, EXAMPLE_STRING_LENGTH);
     labpack_write_bytes(writer, NULL, EXAMPLE_STRING_LENGTH);
     mu_assert(labpack_writer_is_error(writer), "Succeeds when it should have failed");
     mu_assert(labpack_writer_status(writer) == LABPACK_STATUS_ERROR_NULL_VALUE, "Not correct status");
-    labpack_end_str(writer);
+    labpack_writer_end_str(writer);
 }
 
 MU_TEST(test_end_type_works)
 {
-    labpack_begin_str(writer, EXAMPLE_STRING_LENGTH);
+    labpack_writer_begin_str(writer, EXAMPLE_STRING_LENGTH);
     labpack_write_bytes(writer, EXAMPLE_STRING, EXAMPLE_STRING_LENGTH);
-    labpack_end_type(writer, LABPACK_TYPE_STR);
+    labpack_writer_end_type(writer, LABPACK_TYPE_STR);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end type"); 
 }
 

@@ -296,28 +296,28 @@ labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t si
 }
 
 void
-labpack_begin_array(labpack_writer_t* writer, uint32_t count)
+labpack_writer_begin_array(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
     mpack_start_array(writer->encoder, count);
 }
 
 void
-labpack_begin_map(labpack_writer_t* writer, uint32_t count)
+labpack_writer_begin_map(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
     mpack_start_map(writer->encoder, count);
 }
 
 void
-labpack_end_array(labpack_writer_t* writer)
+labpack_writer_end_array(labpack_writer_t* writer)
 {
     assert(writer);
     mpack_finish_array(writer->encoder);
 }
 
 void
-labpack_end_map(labpack_writer_t* writer)
+labpack_writer_end_map(labpack_writer_t* writer)
 {
     assert(writer);
     mpack_finish_map(writer->encoder);
@@ -425,21 +425,21 @@ labpack_write_ext(labpack_writer_t* writer, int8_t type, const char* data, uint3
 }
 
 void
-labpack_begin_str(labpack_writer_t* writer, uint32_t count)
+labpack_writer_begin_str(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
     mpack_start_str(writer->encoder, count);
 }
 
 void
-labpack_begin_bin(labpack_writer_t* writer, uint32_t count)
+labpack_writer_begin_bin(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
     mpack_start_bin(writer->encoder, count);
 }
 
 void
-labpack_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count)
+labpack_writer_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count)
 {
     assert(writer);
     mpack_start_ext(writer->encoder, type, count);
@@ -458,28 +458,28 @@ labpack_write_bytes(labpack_writer_t* writer, const char* data, size_t count)
 }
 
 void
-labpack_end_str(labpack_writer_t* writer)
+labpack_writer_end_str(labpack_writer_t* writer)
 {
     assert(writer);
     mpack_finish_str(writer->encoder);
 }
 
 void
-labpack_end_bin(labpack_writer_t* writer)
+labpack_writer_end_bin(labpack_writer_t* writer)
 {
     assert(writer);
     mpack_finish_bin(writer->encoder);
 }
 
 void
-labpack_end_ext(labpack_writer_t* writer)
+labpack_writer_end_ext(labpack_writer_t* writer)
 {
     assert(writer);
     mpack_finish_ext(writer->encoder);
 }
 
 void
-labpack_end_type(labpack_writer_t* writer, labpack_type_t type)
+labpack_writer_end_type(labpack_writer_t* writer, labpack_type_t type)
 {
     assert(writer);
     mpack_finish_type(writer->encoder, labpack_to_mpack_type(type));

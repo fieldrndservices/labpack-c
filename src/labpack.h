@@ -293,23 +293,23 @@ LABPACK_API void labpack_write_object_bytes(labpack_writer_t* writer, const char
  * Begins an array for encoding. The <code>labpack_end_array</code> function
  * must be called once all <code>count</code> elements have been written.
  */
-LABPACK_API void labpack_begin_array(labpack_writer_t* writer, uint32_t count);
+LABPACK_API void labpack_writer_begin_array(labpack_writer_t* writer, uint32_t count);
 
 /**
  * Begins a map for encoding. The <code>labpack_end_map</code> function must be
  * called once all <code>count</code> elements have been written.
  */
-LABPACK_API void labpack_begin_map(labpack_writer_t* writer, uint32_t count);
+LABPACK_API void labpack_writer_begin_map(labpack_writer_t* writer, uint32_t count);
 
 /**
  * Finishes encoding an array.
  */
-LABPACK_API void labpack_end_array(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_end_array(labpack_writer_t* writer);
 
 /**
  * Finishes encoding a map.
  */
-LABPACK_API void labpack_end_map(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_end_map(labpack_writer_t* writer);
 
 /**
  * Writes a string regardless of encoding. If the string is encoded UTF-8, then
@@ -380,17 +380,17 @@ LABPACK_API void labpack_write_ext(labpack_writer_t* writer, int8_t type, const 
 /**
  * Begins writing a string in chunks.
  */
-LABPACK_API void labpack_begin_str(labpack_writer_t* writer, uint32_t count);
+LABPACK_API void labpack_writer_begin_str(labpack_writer_t* writer, uint32_t count);
 
 /**
  * Begins writing a binary blob in chunks.
  */
-LABPACK_API void labpack_begin_bin(labpack_writer_t* writer, uint32_t count);
+LABPACK_API void labpack_writer_begin_bin(labpack_writer_t* writer, uint32_t count);
 
 /**
  * Begins writing an extension type in chunks.
  */
-LABPACK_API void labpack_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count);
+LABPACK_API void labpack_writer_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count);
 
 /**
  * Writes a chunk of bytes for a string, binary, or extension type. This should
@@ -405,22 +405,22 @@ LABPACK_API void labpack_write_bytes(labpack_writer_t* writer, const char* data,
 /**
  * Ends writing a string in chunks.
  */
-LABPACK_API void labpack_end_str(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_end_str(labpack_writer_t* writer);
 
 /**
  * Ends writing a binary blob in chunks.
  */
-LABPACK_API void labpack_end_bin(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_end_bin(labpack_writer_t* writer);
 
 /**
  * Ends writing an extension type in chunks.
  */
-LABPACK_API void labpack_end_ext(labpack_writer_t* writer);
+LABPACK_API void labpack_writer_end_ext(labpack_writer_t* writer);
 
 /**
  * Ends writing any type.
  */
-LABPACK_API void labpack_end_type(labpack_writer_t* writer, labpack_type_t type);
+LABPACK_API void labpack_writer_end_type(labpack_writer_t* writer, labpack_type_t type);
 
 /**
  * Creates (allocates) a new MessagePack decoder.
@@ -583,13 +583,23 @@ LABPACK_API uint32_t labpack_read_array(labpack_reader_t* reader);
 /**
  * Reads an array or nil.
  *
- * Return <code>true</code> if an array was read; otherwise, <code>false</code> if nil is return.
+ * Returns <code>true</code> if an array was read; otherwise, <code>false</code> if nil is return.
  *
  * The decoder is placed into an error state if the type is <i>not</i> an array or
  * nil. In the error state, the return value is <code>false</code>.
  */
 LABPACK_API bool labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* count);
 
+/**
+ * Begins reading a string. The <code>labpack_read_bytes</code> function should
+ * be used after this function to read the bytes of the string and then
+ * completed with the <code>labpack_reader_end_str</code> function.
+ *
+ * Returns the length of the string or zero (0) if an error occurred.
+ *
+ * The decoder is placed into an error state if the type is <i>not</i> is not a string.
+ */
+LABPACK_API uint32_t labpack_reader_begin_str(labpack_reader_t* reader);
 #ifdef __cplusplus
 }
 #endif

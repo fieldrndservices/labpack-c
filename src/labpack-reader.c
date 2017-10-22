@@ -297,3 +297,17 @@ labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* count)
     return is_array;
 }
 
+uint32_t
+labpack_reader_begin_str(labpack_reader_t* reader)
+{
+    assert(reader);
+    uint32_t length = mpack_expect_str(reader->decoder);
+    mpack_error_t result = mpack_reader_error(reader->decoder);
+    if (result != mpack_ok) {
+        reader->status = LABPACK_STATUS_ERROR_DECODER;
+        reader->status_message = mpack_error_to_string(result);
+        return 0;
+    }
+    return length;
+}
+
