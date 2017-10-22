@@ -201,3 +201,31 @@ labpack_read_int(labpack_reader_t* reader)
     return mpack_expect_int(reader->decoder);
 }
 
+float
+labpack_read_float(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_float(reader->decoder);
+}
+
+double
+labpack_read_double(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_double(reader->decoder);
+}
+
+float
+labpack_read_float_strict(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_float_strict(reader->decoder);
+}
+
+double
+labpack_read_double_strict(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_double_strict(reader->decoder);
+}
+

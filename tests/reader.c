@@ -206,6 +206,46 @@ MU_TEST(test_read_int_works)
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
+MU_TEST(test_read_float_works)
+{
+    const float EXPECTED = 0.0f;
+    labpack_reader_begin(reader, "\xca\x00\x00\x00\x00", 5);
+    float actual = labpack_read_float(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_double_works)
+{
+    const double EXPECTED = 0.0;
+    labpack_reader_begin(reader, "\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 9);
+    double actual = labpack_read_double(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_float_strict_works)
+{
+    const float EXPECTED = 0.0f;
+    labpack_reader_begin(reader, "\xca\x00\x00\x00\x00", 5);
+    float actual = labpack_read_float_strict(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_double_strict_works)
+{
+    const double EXPECTED = 0.0;
+    labpack_reader_begin(reader, "\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 9);
+    double actual = labpack_read_double_strict(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -247,6 +287,10 @@ MU_TEST_SUITE(basic_number_functions)
     MU_RUN_TEST(test_read_i32_works);
     MU_RUN_TEST(test_read_i64_works);
     MU_RUN_TEST(test_read_int_works);
+    MU_RUN_TEST(test_read_float_works);
+    MU_RUN_TEST(test_read_double_works);
+    MU_RUN_TEST(test_read_float_strict_works);
+    MU_RUN_TEST(test_read_double_strict_works);
 }
 
 int 

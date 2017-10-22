@@ -516,6 +516,30 @@ LABPACK_API int64_t labpack_read_i64(labpack_reader_t* reader);
  */
 LABPACK_API int labpack_read_int(labpack_reader_t* reader);
 
+/**
+ * Read a number as a float. The value could be encoded as an integer, float,
+ * or double, but it is decoded and returned as a float. This could lead to
+ * a loss in precision.
+ */
+LABPACK_API float labpack_read_float(labpack_reader_t* reader);
+
+/**
+ * Read a number as a double. The value could be encoded as an integer, float,
+ * or double, but it is decoded and returned as a double. This could lead to
+ * a loss in precision.
+ */
+LABPACK_API double labpack_read_double(labpack_reader_t* reader);
+
+/**
+ * Read a float without loss in precision. The encoded value must be a float.
+ */
+LABPACK_API float labpack_read_float_strict(labpack_reader_t* reader);
+
+/**
+ * Read a double without loss in precision. The encoded value must be a double.
+ */
+LABPACK_API double labpack_read_double_strict(labpack_reader_t* reader);
+
 #ifdef __cplusplus
 }
 #endif
