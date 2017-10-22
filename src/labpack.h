@@ -560,6 +560,36 @@ LABPACK_API void labpack_read_true(labpack_reader_t* reader);
  */
 LABPACK_API void labpack_read_false(labpack_reader_t* reader);
 
+/**
+ * Reads a map and returns the number of key-value elements.
+ */
+LABPACK_API uint32_t labpack_read_map(labpack_reader_t* reader);
+
+/**
+ * Reads a map or nil.
+ *
+ * Return <code>true</code> if a map was read; otherwise, <code>false</code> if nil is return.
+ *
+ * The decoder is placed into an error state if the type is <i>not</i> a map or
+ * nil. In the error state, the return value is <code>false</code>.
+ */
+LABPACK_API bool labpack_read_map_or_nil(labpack_reader_t* reader, uint32_t* count);
+
+/**
+ * Reads an array and returns the number of key-value elements.
+ */
+LABPACK_API uint32_t labpack_read_array(labpack_reader_t* reader);
+
+/**
+ * Reads an array or nil.
+ *
+ * Return <code>true</code> if an array was read; otherwise, <code>false</code> if nil is return.
+ *
+ * The decoder is placed into an error state if the type is <i>not</i> an array or
+ * nil. In the error state, the return value is <code>false</code>.
+ */
+LABPACK_API bool labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* count);
+
 #ifdef __cplusplus
 }
 #endif

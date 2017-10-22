@@ -280,6 +280,50 @@ MU_TEST(test_read_false_works)
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
 }
 
+MU_TEST(test_read_map_works)
+{
+    const uint32_t EXPECTED = 0;
+    labpack_reader_begin(reader, "\x80", 1);
+    uint32_t actual = labpack_read_map(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_map_or_nil_works)
+{
+    const uint32_t EXPECTED = 0;
+    uint32_t actual;
+    labpack_reader_begin(reader, "\x80", 1);
+    bool is_map = labpack_read_map_or_nil(reader, &actual);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(is_map, "Map not read");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_array_works)
+{
+    const uint32_t EXPECTED = 0;
+    labpack_reader_begin(reader, "\x90", 1);
+    uint32_t actual = labpack_read_array(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_array_or_nil_works)
+{
+    const uint32_t EXPECTED = 0;
+    uint32_t actual;
+    labpack_reader_begin(reader, "\x90", 1);
+    bool is_array = labpack_read_array_or_nil(reader, &actual);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(is_array, "Array not read");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -337,6 +381,16 @@ MU_TEST_SUITE(other_basic_types)
     MU_RUN_TEST(test_read_false_works);
 } 
 
+MU_TEST_SUITE(compound_types)
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_read_map_works);
+    MU_RUN_TEST(test_read_map_or_nil_works);
+    MU_RUN_TEST(test_read_array_works);
+    MU_RUN_TEST(test_read_array_or_nil_works);
+} 
+
 int 
 main(int argc, char* argv[]) 
 {
@@ -345,6 +399,7 @@ main(int argc, char* argv[])
     MU_RUN_SUITE(reader_begin_and_end);
     MU_RUN_SUITE(basic_number_functions);
     MU_RUN_SUITE(other_basic_types);
+    MU_RUN_SUITE(compound_types);
 	MU_REPORT();
 	return minunit_fail;
 }

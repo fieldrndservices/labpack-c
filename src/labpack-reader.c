@@ -233,7 +233,7 @@ void
 labpack_read_nil(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_nil(reader->decoder);
+    mpack_expect_nil(reader->decoder);
 }
 
 bool
@@ -247,13 +247,53 @@ void
 labpack_read_true(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_true(reader->decoder);
+    mpack_expect_true(reader->decoder);
 }
 
 void
 labpack_read_false(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_false(reader->decoder);
+    mpack_expect_false(reader->decoder);
+}
+
+uint32_t
+labpack_read_map(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_map(reader->decoder);
+}
+
+bool
+labpack_read_map_or_nil(labpack_reader_t* reader, uint32_t* count)
+{
+    assert(reader);
+    bool is_map = mpack_expect_map_or_nil(reader->decoder, count);
+    mpack_error_t result = mpack_reader_error(reader->decoder);
+    if (result != mpack_ok) {
+        reader->status = LABPACK_STATUS_ERROR_DECODER;
+        reader->status_message = mpack_error_to_string(result);
+    }
+    return is_map;
+}
+
+uint32_t
+labpack_read_array(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_array(reader->decoder);
+}
+
+bool
+labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* count)
+{
+    assert(reader);
+    bool is_array = mpack_expect_array_or_nil(reader->decoder, count);
+    mpack_error_t result = mpack_reader_error(reader->decoder);
+    if (result != mpack_ok) {
+        reader->status = LABPACK_STATUS_ERROR_DECODER;
+        reader->status_message = mpack_error_to_string(result);
+    }
+    return is_array;
 }
 
