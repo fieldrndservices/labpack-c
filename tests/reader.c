@@ -246,6 +246,40 @@ MU_TEST(test_read_double_strict_works)
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
+MU_TEST(test_read_nil_works)
+{
+    labpack_reader_begin(reader, "\xc0", 1);
+    labpack_read_nil(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+}
+
+MU_TEST(test_read_bool_works)
+{
+    const bool EXPECTED = true;
+    labpack_reader_begin(reader, "\xc3", 1);
+    bool actual = labpack_read_bool(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_true_works)
+{
+    labpack_reader_begin(reader, "\xc3", 1);
+    labpack_read_true(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+}
+
+MU_TEST(test_read_false_works)
+{
+    labpack_reader_begin(reader, "\xc2", 1);
+    labpack_read_false(reader);
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -293,6 +327,16 @@ MU_TEST_SUITE(basic_number_functions)
     MU_RUN_TEST(test_read_double_strict_works);
 }
 
+MU_TEST_SUITE(other_basic_types)
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_read_nil_works);
+    MU_RUN_TEST(test_read_bool_works);
+    MU_RUN_TEST(test_read_true_works);
+    MU_RUN_TEST(test_read_false_works);
+} 
+
 int 
 main(int argc, char* argv[]) 
 {
@@ -300,6 +344,7 @@ main(int argc, char* argv[])
     MU_RUN_SUITE(reader_status);
     MU_RUN_SUITE(reader_begin_and_end);
     MU_RUN_SUITE(basic_number_functions);
+    MU_RUN_SUITE(other_basic_types);
 	MU_REPORT();
 	return minunit_fail;
 }

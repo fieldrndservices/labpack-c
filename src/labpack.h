@@ -540,6 +540,26 @@ LABPACK_API float labpack_read_float_strict(labpack_reader_t* reader);
  */
 LABPACK_API double labpack_read_double_strict(labpack_reader_t* reader);
 
+/**
+ * Read a nil value.
+ */
+LABPACK_API void labpack_read_nil(labpack_reader_t* reader);
+
+/**
+ * Read a boolean value.
+ */
+LABPACK_API bool labpack_read_bool(labpack_reader_t* reader);
+
+/**
+ * Read a boolean true value.
+ */
+LABPACK_API void labpack_read_true(labpack_reader_t* reader);
+
+/**
+ * Read a boolean false value.
+ */
+LABPACK_API void labpack_read_false(labpack_reader_t* reader);
+
 #ifdef __cplusplus
 }
 #endif

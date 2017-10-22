@@ -229,3 +229,31 @@ labpack_read_double_strict(labpack_reader_t* reader)
     return mpack_expect_double_strict(reader->decoder);
 }
 
+void
+labpack_read_nil(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_nil(reader->decoder);
+}
+
+bool
+labpack_read_bool(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_bool(reader->decoder);
+}
+
+void
+labpack_read_true(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_true(reader->decoder);
+}
+
+void
+labpack_read_false(labpack_reader_t* reader)
+{
+    assert(reader);
+    return mpack_expect_false(reader->decoder);
+}
+
