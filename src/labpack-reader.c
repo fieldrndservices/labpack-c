@@ -209,7 +209,7 @@ labpack_read_i8(labpack_reader_t* reader)
     int8_t value = 0;
     if (labpack_reader_is_ok(reader)) {
         value = mpack_expect_i8(reader->decoder);
-        labpack_reader_check_decoder(reader)
+        labpack_reader_check_decoder(reader);
     }
     return value;
 }
@@ -329,6 +329,7 @@ labpack_read_bool(labpack_reader_t* reader)
         value = mpack_expect_bool(reader->decoder);
         labpack_reader_check_decoder(reader);
     }
+    return value;
 }
 
 void
@@ -375,6 +376,14 @@ labpack_reader_begin_map_or_nil(labpack_reader_t* reader, uint32_t* count)
     return is_map;
 }
 
+void
+labpack_reader_end_map(labpack_reader_t* reader)
+{
+    assert(reader);
+    mpack_done_map(reader->decoder);
+    labpack_reader_check_decoder(reader);
+}
+
 uint32_t
 labpack_reader_begin_array(labpack_reader_t* reader)
 {
@@ -399,8 +408,13 @@ labpack_reader_begin_array_or_nil(labpack_reader_t* reader, uint32_t* count)
     return is_array;
 }
 
-// TODO: Add `end` map function
-// TODO: Add `end` array function
+void
+labpack_reader_end_array(labpack_reader_t* reader)
+{
+    assert(reader);
+    mpack_done_array(reader->decoder);
+    labpack_reader_check_decoder(reader);
+}
 
 uint32_t
 labpack_reader_begin_str(labpack_reader_t* reader)

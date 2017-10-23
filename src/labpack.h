@@ -563,32 +563,60 @@ LABPACK_API void labpack_read_false(labpack_reader_t* reader);
 /**
  * Reads a map and returns the number of key-value elements.
  */
-LABPACK_API uint32_t labpack_read_map(labpack_reader_t* reader);
+LABPACK_API uint32_t labpack_reader_begin_map(labpack_reader_t* reader);
 
 /**
- * Reads a map or nil.
+ * Reads a map or nil. The key-value pairs count is stored in
+ * <code>count</code>. The <code>labpack_reader_end_map</code> function should
+ * be called once all of the key-value pairs have been read unless the value
+ * was nil.
  *
- * Return <code>true</code> if a map was read; otherwise, <code>false</code> if nil is return.
+ * Returns <code>true</code> if a map was read; otherwise, <code>false</code>.
  *
  * The decoder is placed into an error state if the type is <i>not</i> a map or
  * nil. In the error state, the return value is <code>false</code>.
+ *
+ * TODO: Move this to "module" level and link. Check Doxygen functionality
+ * This function provides standard error handling functionality, i.e. if an
+ * error occurred before this function is called as indicated by the decoder
+ * being in an error status, then the function returns a default value and
+ * leaves the decoder with the previous error status. This function runs
+ * normally only if the decoder is in the OK status before this function is
+ * called. If an error occurs while this function is called, it runs normally
+ * and sets the decoder's error status. The decoder continues with the error
+ * status until the <code>labpack_reader_begin</code> function is called again.
  */
-LABPACK_API bool labpack_read_map_or_nil(labpack_reader_t* reader, uint32_t* count);
+LABPACK_API bool labpack_reader_begin_map_or_nil(labpack_reader_t* reader, uint32_t* count);
 
 /**
- * Reads an array and returns the number of key-value elements.
+ * Ends reading a map.
  */
-LABPACK_API uint32_t labpack_read_array(labpack_reader_t* reader);
+LABPACK_API void labpack_reader_end_map(labpack_reader_t* reader);
 
 /**
- * Reads an array or nil.
+ * Reads an array and returns the number of elements. The
+ * <code>labpack_reader_end_array</code> function should be called once all of
+ * the elements have been read.
+ */
+LABPACK_API uint32_t labpack_reader_begin_array(labpack_reader_t* reader);
+
+/**
+ * Begins reading an array or nil. The elements count is stored in
+ * <code>count</code>. The <code>labpack_reader_end_array</code> function
+ * should be called after reading all of the elements unless the value was nil
+ * instead of an array.
  *
  * Returns <code>true</code> if an array was read; otherwise, <code>false</code> if nil is return.
  *
  * The decoder is placed into an error state if the type is <i>not</i> an array or
  * nil. In the error state, the return value is <code>false</code>.
  */
-LABPACK_API bool labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* count);
+LABPACK_API bool labpack_reader_begin_array_or_nil(labpack_reader_t* reader, uint32_t* count);
+
+/**
+ * Ends reading an array.
+ */
+LABPACK_API void labpack_reader_end_array(labpack_reader_t* reader);
 
 /**
  * Begins reading a string. The <code>labpack_read_bytes</code> function should
@@ -600,6 +628,7 @@ LABPACK_API bool labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* c
  * The decoder is placed into an error state if the type is <i>not</i> is not a string.
  */
 LABPACK_API uint32_t labpack_reader_begin_str(labpack_reader_t* reader);
+
 #ifdef __cplusplus
 }
 #endif
