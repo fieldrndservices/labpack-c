@@ -629,6 +629,18 @@ LABPACK_API void labpack_reader_end_array(labpack_reader_t* reader);
  */
 LABPACK_API uint32_t labpack_reader_begin_str(labpack_reader_t* reader);
 
+/**
+ * Ends reading a string.
+ */
+LABPACK_API void labpack_reader_end_str(labpack_reader_t* reader);
+
+/**
+ * Reads bytes after beginning the reading of a str, bin, or ext.
+ *
+ * This can be used to read a str, bin, or ext in chunks.
+ */
+LABPACK_API void labpack_read_bytes(labpack_reader_t* reader, char* data, size_t count);
+
 #ifdef __cplusplus
 }
 #endif

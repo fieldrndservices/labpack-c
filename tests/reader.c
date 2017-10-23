@@ -336,6 +336,38 @@ MU_TEST(test_read_array_or_nil_works)
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
+MU_TEST(test_begin_and_end_str_works)
+{
+    const uint32_t EXPECTED = 0;
+    uint32_t actual;
+    labpack_reader_begin(reader, "\xa0", 1);
+    actual = labpack_reader_begin_str(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to begin str");
+    labpack_reader_end_str(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end str");
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
+MU_TEST(test_read_bytes_works)
+{
+    const char* EXPECTED = "Test";
+    uint32_t count;
+    labpack_reader_begin(reader, "\xa4\x54\x65\x73\x74", 5);
+    count = labpack_reader_begin_str(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to begin str");
+    char* actual = malloc(sizeof(char) * count);
+    labpack_read_bytes(reader, actual, count);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to begin str");
+    labpack_reader_end_str(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end str");
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert_string_eq(actual, EXPECTED);
+    free(actual);
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -345,6 +377,8 @@ MU_TEST_SUITE(reader_create_and_destroy)
 
 MU_TEST_SUITE(reader_status) 
 {
+    // The explicit `void*` cast is needed to fix C4113 warnings when using the MSVC
+    // compiler on Windows. They are redundant on non-MSVC compilers.
     MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
 
     MU_RUN_TEST(test_reader_status_works);
@@ -355,8 +389,6 @@ MU_TEST_SUITE(reader_status)
 
 MU_TEST_SUITE(reader_begin_and_end)
 {
-    // The explicit `void*` cast is needed to fix C4113 warnings when using the MSVC
-    // compiler on Windows. They are redundant on non-MSVC compilers.
     MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
 
     MU_RUN_TEST(test_reader_begin_works);
@@ -403,6 +435,14 @@ MU_TEST_SUITE(compound_types)
     MU_RUN_TEST(test_read_array_or_nil_works);
 } 
 
+MU_TEST_SUITE(string_functions)
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_begin_and_end_str_works);
+    MU_RUN_TEST(test_read_bytes_works);
+} 
+
 int 
 main(int argc, char* argv[]) 
 {
@@ -412,6 +452,7 @@ main(int argc, char* argv[])
     MU_RUN_SUITE(basic_number_functions);
     MU_RUN_SUITE(other_basic_types);
     MU_RUN_SUITE(compound_types);
+    MU_RUN_SUITE(string_functions);
 	MU_REPORT();
 	return minunit_fail;
 }

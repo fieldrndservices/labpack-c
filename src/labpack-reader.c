@@ -438,3 +438,13 @@ labpack_reader_end_str(labpack_reader_t* reader)
     }
 }
 
+void
+labpack_read_bytes(labpack_reader_t* reader, char* data, size_t count)
+{
+    assert(reader);
+    if (labpack_reader_is_ok(reader)) {
+        mpack_read_bytes(reader->decoder, data, count);
+        labpack_reader_check_decoder(reader);
+    }
+}
+
