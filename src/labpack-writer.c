@@ -32,6 +32,8 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
+// TODO: Add check for no error if block in the body of all functions
+
 #include <assert.h>
 
 #include "mpack.h"
@@ -51,6 +53,9 @@ static labpack_writer_t OUT_OF_MEMORY_WRITER = {
     LABPACK_STATUS_ERROR_OUT_OF_MEMORY,            // status
     "Not enough memory available to create writer" // status message
 };
+
+// TODO: Add `check` static function, see the reader module for implement
+// TODO: Add check after each mpack function call for status
 
 static void
 labpack_writer_reset_status(labpack_writer_t* writer)

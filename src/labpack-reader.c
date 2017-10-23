@@ -47,6 +47,16 @@ static labpack_reader_t OUT_OF_MEMORY_READER = {
 };
 
 static void
+labpack_reader_check_decoder(labpack_reader_t* reader)
+{
+    mpack_error_t result = mpack_reader_error(reader->decoder);
+    if (result != mpack_ok) {
+        reader->status = LABPACK_STATUS_ERROR_DECODER;
+        reader->status_message = mpack_error_to_string(result);
+    }
+}
+
+static void
 labpack_reader_reset_status(labpack_reader_t* reader)
 {
     assert(reader);
@@ -119,6 +129,7 @@ labpack_reader_begin(labpack_reader_t* reader, const char* data, size_t count)
 {
     assert(reader);
     mpack_reader_init_data(reader->decoder, data, count);
+    labpack_reader_reset_status(reader);
 }
 
 void
@@ -135,179 +146,281 @@ uint8_t
 labpack_read_u8(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_u8(reader->decoder);
+    uint8_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_u8(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 uint16_t
 labpack_read_u16(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_u16(reader->decoder);
+    uint16_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_u16(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 uint32_t
 labpack_read_u32(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_u32(reader->decoder);
+    uint32_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_u32(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 uint64_t
 labpack_read_u64(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_u64(reader->decoder);
+    uint64_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_u64(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 unsigned int
 labpack_read_uint(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_uint(reader->decoder);
+    unsigned int value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_uint(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 int8_t
 labpack_read_i8(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_i8(reader->decoder);
+    int8_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_i8(reader->decoder);
+        labpack_reader_check_decoder(reader)
+    }
+    return value;
 }
 
 int16_t
 labpack_read_i16(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_i16(reader->decoder);
+    int16_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_i16(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 int32_t
 labpack_read_i32(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_i32(reader->decoder);
+    int32_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_i32(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 int64_t
 labpack_read_i64(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_i64(reader->decoder);
+    int64_t value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_i64(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 int
 labpack_read_int(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_int(reader->decoder);
+    int value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_int(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 float
 labpack_read_float(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_float(reader->decoder);
+    float value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_float(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 double
 labpack_read_double(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_double(reader->decoder);
+    double value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_double(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 float
 labpack_read_float_strict(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_float_strict(reader->decoder);
+    float value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_float_strict(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 double
 labpack_read_double_strict(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_double_strict(reader->decoder);
+    double value = 0;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_double_strict(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return value;
 }
 
 void
 labpack_read_nil(labpack_reader_t* reader)
 {
     assert(reader);
-    mpack_expect_nil(reader->decoder);
+    if (labpack_reader_is_ok(reader)) {
+        mpack_expect_nil(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
 }
 
 bool
 labpack_read_bool(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_bool(reader->decoder);
+    bool value = false;
+    if (labpack_reader_is_ok(reader)) {
+        value = mpack_expect_bool(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
 }
 
 void
 labpack_read_true(labpack_reader_t* reader)
 {
     assert(reader);
-    mpack_expect_true(reader->decoder);
+    if (labpack_reader_is_ok(reader)) {
+        mpack_expect_true(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
 }
 
 void
 labpack_read_false(labpack_reader_t* reader)
 {
     assert(reader);
-    mpack_expect_false(reader->decoder);
+    if (labpack_reader_is_ok(reader)) {
+        mpack_expect_false(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
 }
 
 uint32_t
-labpack_read_map(labpack_reader_t* reader)
+labpack_reader_begin_map(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_map(reader->decoder);
+    uint32_t count = 0;
+    if (labpack_reader_is_ok(reader)) {
+        count = mpack_expect_map(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return count;
 }
 
 bool
-labpack_read_map_or_nil(labpack_reader_t* reader, uint32_t* count)
+labpack_reader_begin_map_or_nil(labpack_reader_t* reader, uint32_t* count)
 {
     assert(reader);
-    bool is_map = mpack_expect_map_or_nil(reader->decoder, count);
-    mpack_error_t result = mpack_reader_error(reader->decoder);
-    if (result != mpack_ok) {
-        reader->status = LABPACK_STATUS_ERROR_DECODER;
-        reader->status_message = mpack_error_to_string(result);
+    bool is_map = false;
+    if (labpack_reader_is_ok(reader)) {
+        is_map = mpack_expect_map_or_nil(reader->decoder, count);
+        labpack_reader_check_decoder(reader);
     }
     return is_map;
 }
 
 uint32_t
-labpack_read_array(labpack_reader_t* reader)
+labpack_reader_begin_array(labpack_reader_t* reader)
 {
     assert(reader);
-    return mpack_expect_array(reader->decoder);
+    uint32_t count = 0;
+    if (labpack_reader_is_ok(reader)) {
+        count = mpack_expect_array(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return count;
 }
 
 bool
-labpack_read_array_or_nil(labpack_reader_t* reader, uint32_t* count)
+labpack_reader_begin_array_or_nil(labpack_reader_t* reader, uint32_t* count)
 {
     assert(reader);
-    bool is_array = mpack_expect_array_or_nil(reader->decoder, count);
-    mpack_error_t result = mpack_reader_error(reader->decoder);
-    if (result != mpack_ok) {
-        reader->status = LABPACK_STATUS_ERROR_DECODER;
-        reader->status_message = mpack_error_to_string(result);
+    bool is_array = false;
+    if (labpack_reader_is_ok(reader)) {
+        is_array = mpack_expect_array_or_nil(reader->decoder, count);
+        labpack_reader_check_decoder(reader);
     }
     return is_array;
 }
+
+// TODO: Add `end` map function
+// TODO: Add `end` array function
 
 uint32_t
 labpack_reader_begin_str(labpack_reader_t* reader)
 {
     assert(reader);
-    uint32_t length = mpack_expect_str(reader->decoder);
-    mpack_error_t result = mpack_reader_error(reader->decoder);
-    if (result != mpack_ok) {
-        reader->status = LABPACK_STATUS_ERROR_DECODER;
-        reader->status_message = mpack_error_to_string(result);
-        return 0;
+    uint32_t length = 0;
+    if (labpack_reader_is_ok(reader)) {
+        length = mpack_expect_str(reader->decoder);
+        labpack_reader_check_decoder(reader);
     }
     return length;
+}
+
+void
+labpack_reader_end_str(labpack_reader_t* reader)
+{
+    assert(reader);
+    if (labpack_reader_is_ok(reader)) {
+        mpack_done_str(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
 }
 
