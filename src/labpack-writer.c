@@ -32,8 +32,6 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-// TODO: Add check for no error if block in the body of all functions
-
 #include <assert.h>
 
 #include "mpack.h"
@@ -54,8 +52,15 @@ static labpack_writer_t OUT_OF_MEMORY_WRITER = {
     "Not enough memory available to create writer" // status message
 };
 
-// TODO: Add `check` static function, see the reader module for implement
-// TODO: Add check after each mpack function call for status
+static void
+labpack_writer_check_encoder(labpack_writer_t* writer)
+{
+    mpack_error_t result = mpack_writer_error(writer->encoder);
+    if (result != mpack_ok) {
+        writer->status = LABPACK_STATUS_ERROR_ENCODER;
+        writer->status_message = mpack_error_to_string(result);
+    }
+}
 
 static void
 labpack_writer_reset_status(labpack_writer_t* writer)
@@ -156,204 +161,274 @@ size_t
 labpack_writer_buffer_size(labpack_writer_t* writer)
 {
     assert(writer);
-    return writer->size;
+    size_t size = 0;
+    if (labpack_writer_is_ok(writer)) {
+        size = writer->size;
+    }
+    return size;
 }
 
 void
 labpack_writer_buffer_data(labpack_writer_t* writer, char* buffer)
 {
     assert(writer);
-    if (!buffer) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = "The buffer cannot be NULL";
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!buffer) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = "The buffer cannot be NULL";
+            return;
+        }
+        if (!writer->buffer) {
+            writer->status = LABPACK_STATUS_ERROR_ENCODER;
+            writer->status_message = "The encoder is not done";
+            return;
+        }
+        memcpy(buffer, writer->buffer, writer->size);
     }
-    if (!writer->buffer) {
-        writer->status = LABPACK_STATUS_ERROR_ENCODER;
-        writer->status_message = "The encoder is not done";
-        return;
-    }
-    memcpy(buffer, writer->buffer, writer->size);
 }
 
 void
 labpack_write_i8(labpack_writer_t* writer, int8_t value)
 {
     assert(writer);
-    mpack_write_i8(writer->encoder, value); 
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_i8(writer->encoder, value); 
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_i16(labpack_writer_t* writer, int16_t value)
 {
     assert(writer);
-    mpack_write_i16(writer->encoder, value); 
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_i16(writer->encoder, value); 
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_i32(labpack_writer_t* writer, int32_t value)
 {
     assert(writer);
-    mpack_write_i32(writer->encoder, value); 
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_i32(writer->encoder, value); 
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_i64(labpack_writer_t* writer, int64_t value)
 {
     assert(writer);
-    mpack_write_i64(writer->encoder, value); 
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_i64(writer->encoder, value); 
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_int(labpack_writer_t* writer, int64_t value)
 {
     assert(writer);
-    mpack_write_int(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_int(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_u8(labpack_writer_t* writer, uint8_t value)
 {
     assert(writer);
-    mpack_write_u8(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_u8(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_u16(labpack_writer_t* writer, uint16_t value)
 {
     assert(writer);
-    mpack_write_u16(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_u16(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_u32(labpack_writer_t* writer, uint32_t value)
 {
     assert(writer);
-    mpack_write_u32(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_u32(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_u64(labpack_writer_t* writer, uint64_t value)
 {
     assert(writer);
-    mpack_write_u64(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_u64(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_uint(labpack_writer_t* writer, uint64_t value)
 {
     assert(writer);
-    mpack_write_uint(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_uint(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_float(labpack_writer_t* writer, float value)
 {
     assert(writer);
-    mpack_write_float(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_float(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_double(labpack_writer_t* writer, double value)
 {
     assert(writer);
-    mpack_write_double(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_double(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_bool(labpack_writer_t* writer, bool value)
 {
     assert(writer);
-    mpack_write_bool(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_bool(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_true(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_write_true(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_true(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_false(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_write_false(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_false(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_nil(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_write_nil(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_nil(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_object_bytes(labpack_writer_t* writer, const char* data, size_t size)
 {
     assert(writer);
-    if (!data && size > 0) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = "The MessagePack object data is NULL but the size is not zero";
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!data && size > 0) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = "The MessagePack object data is NULL but the size is not zero";
+            return;
+        }
+        mpack_write_object_bytes(writer->encoder, data, size);
+        labpack_writer_check_encoder(writer);
     }
-    mpack_write_object_bytes(writer->encoder, data, size);
 }
 
 void
 labpack_writer_begin_array(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
-    mpack_start_array(writer->encoder, count);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_start_array(writer->encoder, count);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_begin_map(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
-    mpack_start_map(writer->encoder, count);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_start_map(writer->encoder, count);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_end_array(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_finish_array(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_finish_array(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_end_map(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_finish_map(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_finish_map(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_str(labpack_writer_t* writer, const char* value, uint32_t length)
 {
     assert(writer);
-    if (!value && length > 0) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_STRING_MESSAGE;
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!value && length > 0) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_STRING_MESSAGE;
+            return;
+        }
+        mpack_write_str(writer->encoder, value, length);
+        labpack_writer_check_encoder(writer);
     }
-    mpack_write_str(writer->encoder, value, length);
 }
 
 void
 labpack_write_utf8(labpack_writer_t* writer, const char* value, uint32_t length)
 {
     assert(writer);
-    if (!value && length > 0) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_STRING_MESSAGE;
-        return;
-    }
-    mpack_write_utf8(writer->encoder, value, length);
-    if (mpack_writer_error(writer->encoder) != mpack_ok) {
-        writer->status = LABPACK_STATUS_ERROR_ENCODER;
-        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!value && length > 0) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_STRING_MESSAGE;
+            return;
+        }
+        mpack_write_utf8(writer->encoder, value, length);
+        labpack_writer_check_encoder(writer);
     }
 }
 
@@ -361,35 +436,39 @@ void
 labpack_write_cstr(labpack_writer_t* writer, const char* value)
 {
     assert(writer);
-    if (!value) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_CSTR_MESSAGE;
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!value) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_CSTR_MESSAGE;
+            return;
+        }
+        mpack_write_cstr(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
     }
-    mpack_write_cstr(writer->encoder, value);
 }
 
 void
 labpack_write_cstr_or_nil(labpack_writer_t* writer, const char* value)
 {
     assert(writer);
-    mpack_write_cstr_or_nil(writer->encoder, value);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_cstr_or_nil(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_utf8_cstr(labpack_writer_t* writer, const char* value)
 {
     assert(writer);
-    if (!value) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_CSTR_MESSAGE;
-        return;
-    }
-    mpack_write_utf8_cstr(writer->encoder, value);
-    if (mpack_writer_error(writer->encoder) != mpack_ok) {
-        writer->status = LABPACK_STATUS_ERROR_ENCODER;
-        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!value) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_CSTR_MESSAGE;
+            return;
+        }
+        mpack_write_utf8_cstr(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
     }
 }
 
@@ -397,11 +476,9 @@ void
 labpack_write_utf8_cstr_or_nil(labpack_writer_t* writer, const char* value)
 {
     assert(writer);
-    mpack_write_utf8_cstr_or_nil(writer->encoder, value);
-    if (mpack_writer_error(writer->encoder) != mpack_ok) {
-        writer->status = LABPACK_STATUS_ERROR_ENCODER;
-        writer->status_message = mpack_error_to_string(mpack_writer_error(writer->encoder));
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        mpack_write_utf8_cstr_or_nil(writer->encoder, value);
+        labpack_writer_check_encoder(writer);
     }
 }
 
@@ -409,84 +486,114 @@ void
 labpack_write_bin(labpack_writer_t* writer, const char* data, uint32_t count)
 {
     assert(writer);
-    if (!data && count > 0) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_DATA_MESSAGE;
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!data && count > 0) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_DATA_MESSAGE;
+            return;
+        }
+        mpack_write_bin(writer->encoder, data, count);
+        labpack_writer_check_encoder(writer);
     }
-    mpack_write_bin(writer->encoder, data, count);
 }
 
 void
 labpack_write_ext(labpack_writer_t* writer, int8_t type, const char* data, uint32_t count)
 {
     assert(writer);
-    if (!data && count > 0) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_DATA_MESSAGE;
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!data && count > 0) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_DATA_MESSAGE;
+            return;
+        }
+        mpack_write_ext(writer->encoder, type, data, count);
+        labpack_writer_check_encoder(writer);
     }
-    mpack_write_ext(writer->encoder, type, data, count);
 }
 
 void
 labpack_writer_begin_str(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
-    mpack_start_str(writer->encoder, count);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_start_str(writer->encoder, count);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_begin_bin(labpack_writer_t* writer, uint32_t count)
 {
     assert(writer);
-    mpack_start_bin(writer->encoder, count);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_start_bin(writer->encoder, count);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_begin_ext(labpack_writer_t* writer, int8_t type, uint32_t count)
 {
     assert(writer);
-    mpack_start_ext(writer->encoder, type, count);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_start_ext(writer->encoder, type, count);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_write_bytes(labpack_writer_t* writer, const char* data, size_t count)
 {
     assert(writer);
-    if (!data && count > 0) {
-        writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
-        writer->status_message = NULL_DATA_MESSAGE;
-        return;
+    if (labpack_writer_is_ok(writer)) {
+        if (!data && count > 0) {
+            writer->status = LABPACK_STATUS_ERROR_NULL_VALUE;
+            writer->status_message = NULL_DATA_MESSAGE;
+            return;
+        }
+        mpack_write_bytes(writer->encoder, data, count);
+        labpack_writer_check_encoder(writer);
     }
-    mpack_write_bytes(writer->encoder, data, count);
 }
 
 void
 labpack_writer_end_str(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_finish_str(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_finish_str(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_end_bin(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_finish_bin(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_finish_bin(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_end_ext(labpack_writer_t* writer)
 {
     assert(writer);
-    mpack_finish_ext(writer->encoder);
+    if (labpack_writer_is_ok(writer)) {
+        mpack_finish_ext(writer->encoder);
+        labpack_writer_check_encoder(writer);
+    }
 }
 
 void
 labpack_writer_end_type(labpack_writer_t* writer, labpack_type_t type)
 {
     assert(writer);
-    mpack_finish_type(writer->encoder, labpack_to_mpack_type(type));
+    if (labpack_writer_is_ok(writer)) {
+        mpack_finish_type(writer->encoder, labpack_to_mpack_type(type));
+        labpack_writer_check_encoder(writer);
+    }
 }
 
