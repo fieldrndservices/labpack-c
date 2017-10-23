@@ -364,8 +364,22 @@ MU_TEST(test_read_bytes_works)
     mu_assert(labpack_reader_is_ok(reader), "Failed to end str");
     labpack_reader_end(reader);
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
-    mu_assert(!strncmp(actual, EXPECTED, count), "The actual value does not match the expected value");
+    mu_assert(!strncmp(actual, EXPECTED, count), ACTUAL_DOES_NOT_MATCH_EXPECTED);
     free(actual);
+}
+
+MU_TEST(test_begin_and_end_bin_works)
+{
+    const uint32_t EXPECTED = 0;
+    uint32_t actual;
+    labpack_reader_begin(reader, "\xc4\x00", 2);
+    actual = labpack_reader_begin_bin(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to begin bin");
+    labpack_reader_end_bin(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end bin");
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
 MU_TEST_SUITE(reader_create_and_destroy) 
@@ -443,6 +457,13 @@ MU_TEST_SUITE(string_functions)
     MU_RUN_TEST(test_read_bytes_works);
 } 
 
+MU_TEST_SUITE(binary_data_functions)
+{
+    MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
+
+    MU_RUN_TEST(test_begin_and_end_bin_works);
+}
+
 int 
 main(int argc, char* argv[]) 
 {
@@ -453,6 +474,7 @@ main(int argc, char* argv[])
     MU_RUN_SUITE(other_basic_types);
     MU_RUN_SUITE(compound_types);
     MU_RUN_SUITE(string_functions);
+    MU_RUN_SUITE(binary_data_functions);
 	MU_REPORT();
 	return minunit_fail;
 }

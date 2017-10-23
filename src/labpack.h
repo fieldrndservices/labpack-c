@@ -635,6 +635,23 @@ LABPACK_API uint32_t labpack_reader_begin_str(labpack_reader_t* reader);
 LABPACK_API void labpack_reader_end_str(labpack_reader_t* reader);
 
 /**
+ * Begins reading a binary blob. The <code>labpack_read_bytes</code> function
+ * should be used after this function to read the bytes of the string and then
+ * completed with the <code>labpack_reader_end_bin</code> function.
+ * 
+ * Returns the bytes count of the binary blob or zero (0) if an error occurred.
+ *
+ * The decoder is placed into an error status if the type is <i>not</i> is not
+ * a binary blob.
+ */
+LABPACK_API uint32_t labpack_reader_begin_bin(labpack_reader_t* reader);
+
+/**
+ * End reading a binary blob.
+ */
+LABPACK_API void labpack_reader_end_bin(labpack_reader_t* reader);
+
+/**
  * Reads bytes after beginning the reading of a str, bin, or ext.
  *
  * This can be used to read a str, bin, or ext in chunks.

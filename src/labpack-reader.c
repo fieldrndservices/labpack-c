@@ -438,6 +438,28 @@ labpack_reader_end_str(labpack_reader_t* reader)
     }
 }
 
+uint32_t
+labpack_reader_begin_bin(labpack_reader_t* reader)
+{
+    assert(reader);
+    uint32_t count = 0;
+    if (labpack_reader_is_ok(reader)) {
+        count = mpack_expect_bin(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+    return count;
+}
+
+void
+labpack_reader_end_bin(labpack_reader_t* reader)
+{
+    assert(reader);
+    if (labpack_reader_is_ok(reader)) {
+        mpack_done_bin(reader->decoder);
+        labpack_reader_check_decoder(reader);
+    }
+}
+
 void
 labpack_read_bytes(labpack_reader_t* reader, char* data, size_t count)
 {
