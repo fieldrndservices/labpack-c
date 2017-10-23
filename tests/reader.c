@@ -364,7 +364,7 @@ MU_TEST(test_read_bytes_works)
     mu_assert(labpack_reader_is_ok(reader), "Failed to end str");
     labpack_reader_end(reader);
     mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
-    mu_assert_string_eq(actual, EXPECTED);
+    mu_assert(!strncmp(actual, EXPECTED, count), "The actual value does not match the expected value");
     free(actual);
 }
 
