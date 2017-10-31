@@ -39,7 +39,21 @@
 
 #include "labpack.h"
 
+/**
+ * Converts a labpack type to a mpack type.
+ *
+ * Returns mpack_type_nil if the type is not known, which is should never
+ * happen since it asserts on unknown type, but this avoids a compiler warning
+ * on Windows systems.
+ */
 mpack_type_t labpack_to_mpack_type(labpack_type_t type);
+
+/**
+ * Converts a mpack error type to a message.
+ *
+ * This will assert on unknown mpack error type.
+ */
+const char* labpack_mpack_error_message(mpack_error_t error);
 
 #endif
 

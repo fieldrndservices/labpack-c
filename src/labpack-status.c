@@ -36,7 +36,7 @@
 
 #include "labpack.h"
 
-static const char* UNKNOWN_STATUS = "Unknown Status";
+static const char* UNKNOWN_STATUS = "Unknown status";
 
 int
 labpack_status_code(labpack_status_t status) {

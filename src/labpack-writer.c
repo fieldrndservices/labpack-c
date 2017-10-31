@@ -58,7 +58,7 @@ labpack_writer_check_encoder(labpack_writer_t* writer)
     mpack_error_t result = mpack_writer_error(writer->encoder);
     if (result != mpack_ok) {
         writer->status = LABPACK_STATUS_ERROR_ENCODER;
-        writer->status_message = mpack_error_to_string(result);
+        writer->status_message = labpack_mpack_error_message(result);
     }
 }
 

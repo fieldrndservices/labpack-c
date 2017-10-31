@@ -52,7 +52,7 @@ labpack_reader_check_decoder(labpack_reader_t* reader)
     mpack_error_t result = mpack_reader_error(reader->decoder);
     if (result != mpack_ok) {
         reader->status = LABPACK_STATUS_ERROR_DECODER;
-        reader->status_message = mpack_error_to_string(result);
+        reader->status_message = labpack_mpack_error_message(result);
     }
 }
 

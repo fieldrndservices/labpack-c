@@ -38,6 +38,9 @@
 
 #include "labpack-private.h"
 
+static const char* UNKNOWN_TYPE = "Unknown type";
+static const char* UNKNOWN_ERROR = "Unknown Mpack error";
+
 mpack_type_t
 labpack_to_mpack_type(labpack_type_t type)
 {
@@ -65,8 +68,26 @@ labpack_to_mpack_type(labpack_type_t type)
         case LABPACK_TYPE_MAP:
             return mpack_type_map;
         default:            
-            assert("Unknown type");
+            assert(UNKNOWN_TYPE);
     }
+    return mpack_type_nil;
+}
+
+const char*
+labpack_mpack_error_message(mpack_error_t error)
+{
+    switch (error) {
+        case mpack_ok: return "No Error";
+        case mpack_error_io: return "The reader or writer failed to fill or flush, or some other file or socket error occurred.";
+        case mpack_error_invalid: return "The data read is no valid MessagePack.";
+        case mpack_error_type: return "The type or value range did not match what was expected by the caller.";
+        case mpack_error_too_big: return "A read or write was bigger than the maximum size allowed for that operation.";
+        case mpack_error_memory: return "An allocation failure occurred.";                                 
+        case mpack_error_bug: return "The MPack API was used incorrectly.";
+        case mpack_error_data: return "The contained data is not valid.";
+        default: assert(UNKNOWN_ERROR);
+    }
+    return UNKNOWN_ERROR;
 }
 
 const char*
