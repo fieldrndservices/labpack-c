@@ -72,9 +72,10 @@ NI provides a cross-compiler for their Real-Time (RT) Linux distribution. Before
 8. Browse to the workspace directory for NI Eclipse to populate the _Directory:_ field. Leave all other fields as the defaults. Click the _Next >_ button. A new page will appear.
 9. Select the `Import existing projects` radio button from the options under the _Wizard for project import_ section. Click the _Next >_ button. A new page will appear.
 10. Click the _Finish_ button. No changes are needed on the _Import Projects_ page. A new `labpack-c` project should appear in the _Project Explorer_.
-11. Right-click on the project in the _Project Explorer_ and select `Build Project` from the context menu that appears. This will build the shared object library for the NI Linux RT x86_64 target.
+11. Click the _Build_ toolbar button (icon is a small hammer) to build the NI Linux RT x86_64-based shared object (so).
+12. Click the drop-down menu next to the _Build_ toolbar button and select the `ARM` build configuration. This will build the NI Linux RT ARM-based shared object (so).
 
-Note, steps 3-10 only need to be done once to setup the project. The `liblabpack-rt.so` will be located in the `Debug` folder under the project's root folder inside the Eclipse workspace folder. A "release" build can be completed by setting the active build configuration to `Release`.
+Note, steps 3-10 only need to be done once to setup the project. The `liblabpack-rt.so` will be located in the `x86_64` folder under the project's root folder inside the Eclipse workspace folder, and the `liblabpack-arm-rt.so` will be located in the `ARM` folder under the project's root folder inside the Eclipse workspace folder.
 
 ## Tests
 
