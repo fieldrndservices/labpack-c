@@ -1,6 +1,6 @@
 # LabPack-C: A LabVIEW-Friendly C library for encoding and decoding MessagePack data
 
-[About](#what-is-labpack-c) | [Build](#build)
+| [About](#what-is-labpack-c) | [Build](#build) |
 
 ## What is LabPack-C?
 
