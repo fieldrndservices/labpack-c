@@ -25,6 +25,11 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+Third-party maintained and licensed projects used by LabPack include:
+
+* mpack: Copyright (c) 2015-2016 Nicholas Fraser
+* minunit: Copyright (c) 2012 David Siñuela Pastor
+
 --------------------------------------------------------------------------------
 
 mpack: A C encoder/decoder for the MessagePack serialization format
