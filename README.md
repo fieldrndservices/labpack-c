@@ -8,7 +8,7 @@ The LabPack-C project is a [LabVIEW](http://www.ni.com/labview)-friendly C libra
 
 ## Install
 
-A single ZIP archive containing the pre-compiled/built shared libraries for all of the platforms listed in the [Build](#build) section is provided with each [release](https://github.com/fieldrndservices/labpack-c/release).
+A single ZIP archive containing the pre-compiled/built shared libraries for all of the platforms listed in the [Build](#build) section is provided with each [release](https://github.com/fieldrndservices/labpack-c/releases).
 
 1. Download the ZIP archive for the latest release. Note, this is _not_ the source code ZIP file. The ZIP archive containing the pre-compiled/built shared libraries will be labeled: `labpack-c_#.#.#.zip`, where `#.#.#` is the version number for the release.
 2. Extract, or unzip, the ZIP archive.
