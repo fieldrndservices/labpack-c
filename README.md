@@ -1,22 +1,35 @@
 # LabPack-C: A LabVIEW-Friendly C library for encoding and decoding MessagePack data
 
-[About](#what-is-labpack-c) | [Build](#build) | [Tests](#tests) | [License](#license)
+[About](#what-is-labpack-c) | [Install](#install) | [Build](#build) | [Tests](#tests) | [License](#license)
 
 ## What is LabPack-C?
 
 The LabPack-C project is a [LabVIEW](http://www.ni.com/labview)-friendly C library for encoding and decoding [MessagePack](http://www.msgpack.org) data. The library is intended to be used with the [Call Library Function](http://zone.ni.com/reference/en-XX/help/371361P-01/glang/call_library_function/) node. This provides MessagePack encoding and decoding functionality to LabVIEW as a Dynamic Link Library (DLL, Windows), Dynamic Library (Dylib, macOS), and/or Shared Object (SO, Linux).
 
-## Dependencies
+## Install
+
+A single ZIP archive containing the pre-compiled/built shared libraries for all of the platforms listed in the [Build](#build) section is provided with each [release](https://github.com/fieldrndservices/labpack-c/release).
+
+1. Download the ZIP archive for the latest release. Note, this is _not_ the source code ZIP file. The ZIP archive containing the pre-compiled/built shared libraries will be labeled: `labpack-c_#.#.#.zip`, where `#.#.#` is the version number for the release.
+2. Extract, or unzip, the ZIP archive.
+3. Copy and paste all or the platform-specific shared libraries to one of the following locations on disk:
+
+| Platform    | Destination           |
+|-------------|-----------------------|
+| Windows     | `C:\Windows\System32` |
+| macOS       | `/usr/local/lib`      |
+| Linux       | `/usr/local/lib`      |
+| NI Linux RT | `/usr/local/lib`      |
+
+## Build
+
+Ensure all of the following dependencies are installed and up-to-date before proceeding:
 
 - [CMake 3.9.x](https://cmake.org/), or newer
 - [Microsoft Visual C++ Build Tools 2017](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2017), Windows Only
 - [XCode Command Line Tools](https://developer.apple.com/xcode/features/), macOS Only
 - [Git](https://git-scm.com/)
 - [C/C++ Development Tools for NI Linux Real-Time, Eclipse Edition 2017](http://www.ni.com/download/labview-real-time-module-2017/6731/en/), NI Linux RT only
-
-## Build
-
-Ensure all of the [dependencies](#dependencies) are installed and up-to-date before proceeding.
 
 ### Windows
 
