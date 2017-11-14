@@ -90,9 +90,9 @@ Start a terminal command prompt and navigate to the root folder of the project. 
     > ctest -C "Debug"
 
 Or
-    > bin\tests\reader
-    > bin\tests\writer
-    > bin\tests\status
+    > bin\reader
+    > bin\writer
+    > bin\status
 
 ### macOS
 
