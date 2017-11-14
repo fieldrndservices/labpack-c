@@ -24,7 +24,7 @@
  */
 
 /*
- * This is the MPack 0.8.2 amalgamation package.
+ * This is the MPack 0.9 amalgamation package.
  *
  * http://github.com/ludocode/mpack
  */
@@ -35,7 +35,27 @@
 #include "mpack.h"
 
 
-/* mpack-platform.c */
+/* mpack/mpack-platform.c.c */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 
 // We define MPACK_EMIT_INLINE_DEFS and include mpack.h to emit
@@ -64,7 +84,7 @@ void mpack_assert_fail_format(const char* format, ...) {
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     buffer[sizeof(buffer) - 1] = 0;
-    mpack_assert_fail(buffer);
+    mpack_assert_fail_wrapper(buffer);
 }
 
 void mpack_break_hit_format(const char* format, ...) {
@@ -85,6 +105,23 @@ void mpack_assert_fail(const char* message) {
     #if MPACK_STDIO
     fprintf(stderr, "%s\n", message);
     #endif
+}
+#endif
+
+// We split the assert failure from the wrapper so that a
+// custom assert function can return.
+void mpack_assert_fail_wrapper(const char* message) {
+
+    #ifdef MPACK_GCOV
+    // gcov marks even __builtin_unreachable() as an uncovered line. this
+    // silences it.
+    (mpack_assert_fail(message), __builtin_unreachable());
+
+    #else
+    mpack_assert_fail(message);
+
+    // mpack_assert_fail() is not supposed to return. in case it does, we
+    // abort. it is not safe to resume execution after this.
 
     #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
@@ -101,8 +138,8 @@ void mpack_assert_fail(const char* message) {
     #endif
 
     MPACK_UNREACHABLE;
+    #endif
 }
-#endif
 
 #if !MPACK_CUSTOM_BREAK
 
@@ -116,7 +153,7 @@ void mpack_assert_fail(const char* message) {
 
 #if MPACK_CUSTOM_ASSERT
 void mpack_break_hit(const char* message) {
-    mpack_assert_fail(message);
+    mpack_assert_fail_wrapper(message);
 }
 #else
 void mpack_break_hit(const char* message) {
@@ -224,7 +261,27 @@ void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
 }
 #endif
 
-/* mpack-common.c */
+/* mpack/mpack-common.c.c */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #define MPACK_INTERNAL 1
 
@@ -246,6 +303,7 @@ const char* mpack_error_to_string(mpack_error_t error) {
         MPACK_ERROR_STRING_CASE(mpack_error_memory);
         MPACK_ERROR_STRING_CASE(mpack_error_bug);
         MPACK_ERROR_STRING_CASE(mpack_error_data);
+        MPACK_ERROR_STRING_CASE(mpack_error_eof);
         #undef MPACK_ERROR_STRING_CASE
         default: break;
     }
@@ -288,11 +346,11 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
     // positive numbers may be stored as int; convert to uint
     if (left.type == mpack_type_int && left.v.i >= 0) {
         left.type = mpack_type_uint;
-        left.v.u = left.v.i;
+        left.v.u = (uint64_t)left.v.i;
     }
     if (right.type == mpack_type_int && right.v.i >= 0) {
         right.type = mpack_type_uint;
-        right.v.u = right.v.i;
+        right.v.u = (uint64_t)right.v.i;
     }
 
     if (left.type != right.type)
@@ -328,12 +386,12 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
             return (left.v.l < right.v.l) ? -1 : 1;
 
         case mpack_type_ext:
-            if (left.exttype == right.exttype) {
-                if (left.v.l == right.v.l)
+            if (left.v.ext.exttype == right.v.ext.exttype) {
+                if (left.v.ext.length == right.v.ext.length)
                     return 0;
-                return (left.v.l < right.v.l) ? -1 : 1;
+                return (left.v.ext.length < right.v.ext.length) ? -1 : 1;
             }
-            return (int)left.exttype - (int)right.exttype;
+            return (int)left.v.ext.exttype - (int)right.v.ext.exttype;
 
         // floats should not normally be compared for equality. we compare
         // with memcmp() to silence compiler warnings, but this will return
@@ -358,6 +416,105 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
     mpack_assert(0, "unrecognized type %i", (int)left.type);
     return false;
 }
+
+#if MPACK_DEBUG && MPACK_STDIO
+void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
+    buffer[0] = 0;
+
+    switch (tag.type) {
+        case mpack_type_nil:
+            mpack_snprintf(buffer, buffer_size, "null");
+            break;
+        case mpack_type_bool:
+            mpack_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
+            break;
+        case mpack_type_int:
+            mpack_snprintf(buffer, buffer_size, "%" PRIi64, tag.v.i);
+            break;
+        case mpack_type_uint:
+            mpack_snprintf(buffer, buffer_size, "%" PRIu64, tag.v.u);
+            break;
+        case mpack_type_float:
+            mpack_snprintf(buffer, buffer_size, "%f", tag.v.f);
+            break;
+        case mpack_type_double:
+            mpack_snprintf(buffer, buffer_size, "%f", tag.v.d);
+            break;
+        case mpack_type_str:
+            mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
+            break;
+        case mpack_type_bin:
+            mpack_snprintf(buffer, buffer_size, "<binary data of length %u>", tag.v.l);
+            break;
+        case mpack_type_ext:
+            mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u>",
+                    tag.v.ext.exttype, tag.v.ext.length);
+            break;
+        case mpack_type_array:
+            mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
+            break;
+        case mpack_type_map:
+            mpack_snprintf(buffer, buffer_size, "<map of %u key-value pairs>", tag.v.n);
+            break;
+        default:
+            mpack_snprintf(buffer, buffer_size, "<unknown!>");
+            break;
+    }
+
+    // We always null-terminate the buffer manually just in case the snprintf()
+    // function doesn't null-terminate when the string doesn't fit.
+    buffer[buffer_size - 1] = 0;
+}
+
+void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
+    buffer[0] = 0;
+
+    switch (tag.type) {
+        case mpack_type_nil:
+            mpack_snprintf(buffer, buffer_size, "nil");
+            break;
+        case mpack_type_bool:
+            mpack_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
+            break;
+        case mpack_type_int:
+            mpack_snprintf(buffer, buffer_size, "int %" PRIi64, tag.v.i);
+            break;
+        case mpack_type_uint:
+            mpack_snprintf(buffer, buffer_size, "uint %" PRIu64, tag.v.u);
+            break;
+        case mpack_type_float:
+            mpack_snprintf(buffer, buffer_size, "float %f", tag.v.f);
+            break;
+        case mpack_type_double:
+            mpack_snprintf(buffer, buffer_size, "double %f", tag.v.d);
+            break;
+        case mpack_type_str:
+            mpack_snprintf(buffer, buffer_size, "str of %u bytes", tag.v.l);
+            break;
+        case mpack_type_bin:
+            mpack_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
+            break;
+        case mpack_type_ext:
+            mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes", tag.v.ext.exttype, tag.v.ext.length);
+            break;
+        case mpack_type_array:
+            mpack_snprintf(buffer, buffer_size, "array of %u elements", tag.v.n);
+            break;
+        case mpack_type_map:
+            mpack_snprintf(buffer, buffer_size, "map of %u key-value pairs", tag.v.n);
+            break;
+        default:
+            mpack_snprintf(buffer, buffer_size, "unknown!");
+            break;
+    }
+
+    // We always null-terminate the buffer manually just in case the snprintf()
+    // function doesn't null-terminate when the string doesn't fit.
+    buffer[buffer_size - 1] = 0;
+}
+#endif
 
 
 
@@ -649,7 +806,27 @@ bool mpack_str_check_no_null(const char* str, size_t bytes) {
 }
 
 
-/* mpack-writer.c */
+/* mpack/mpack-writer.c.c */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #define MPACK_INTERNAL 1
 
@@ -685,14 +862,17 @@ void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
 #endif
 
 static void mpack_writer_clear(mpack_writer_t* writer) {
+    #if MPACK_COMPATIBILITY
+    writer->version = mpack_version_current;
+    #endif
     writer->flush = NULL;
     writer->error_fn = NULL;
     writer->teardown = NULL;
     writer->context = NULL;
 
     writer->buffer = NULL;
-    writer->size = 0;
-    writer->used = 0;
+    writer->current = NULL;
+    writer->end = NULL;
     writer->error = mpack_ok;
 
     #if MPACK_WRITE_TRACKING
@@ -704,7 +884,8 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
     mpack_writer_clear(writer);
     writer->buffer = buffer;
-    writer->size = size;
+    writer->current = buffer;
+    writer->end = writer->buffer + size;
 
     #if MPACK_WRITE_TRACKING
     mpack_writer_flag_if_error(writer, mpack_track_init(&writer->track));
@@ -725,10 +906,12 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
 void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
     MPACK_STATIC_ASSERT(MPACK_WRITER_MINIMUM_BUFFER_SIZE >= MPACK_MAXIMUM_TAG_SIZE,
             "minimum buffer size must fit any tag!");
+    MPACK_STATIC_ASSERT(31 + MPACK_TAG_SIZE_FIXSTR >= MPACK_WRITER_MINIMUM_BUFFER_SIZE,
+            "minimum buffer size must fit the largest possible fixstr!");
 
-    if (writer->size < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
+    if (mpack_writer_buffer_size(writer) < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
         mpack_break("buffer size is %i, but minimum buffer size for flush is %i",
-                (int)writer->size, MPACK_WRITER_MINIMUM_BUFFER_SIZE);
+                (int)mpack_writer_buffer_size(writer), MPACK_WRITER_MINIMUM_BUFFER_SIZE);
         mpack_writer_flag_error(writer, mpack_error_bug);
         return;
     }
@@ -741,6 +924,13 @@ typedef struct mpack_growable_writer_t {
     char** target_data;
     size_t* target_size;
 } mpack_growable_writer_t;
+
+static char* mpack_writer_get_reserved(mpack_writer_t* writer) {
+    // This is in a separate function in order to avoid false strict aliasing
+    // warnings. We aren't actually violating strict aliasing (the reserved
+    // space is only ever dereferenced as an mpack_growable_writer_t.)
+    return (char*)writer->reserved;
+}
 
 static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data, size_t count) {
 
@@ -760,67 +950,78 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
     if (data == writer->buffer) {
 
         // teardown, do nothing
-        if (writer->used == count)
+        if (mpack_writer_buffer_used(writer) == count)
             return;
 
         // otherwise leave the data in the buffer and just grow
-        writer->used = count;
+        writer->current = writer->buffer + count;
         count = 0;
     }
 
-    mpack_log("flush size %i used %i data %p buffer %p\n",
-            (int)count, (int)writer->used, data, writer->buffer);
+    size_t used = mpack_writer_buffer_used(writer);
+    size_t size = mpack_writer_buffer_size(writer);
 
-    mpack_assert(data == writer->buffer || writer->used + count > writer->size,
+    mpack_log("flush size %i used %i data %p buffer %p\n",
+            (int)count, (int)used, data, writer->buffer);
+
+    mpack_assert(data == writer->buffer || used + count > size,
             "extra flush for %i but there is %i space left in the buffer! (%i/%i)",
-            (int)count, (int)writer->size - (int)writer->used, (int)writer->used, (int)writer->size);
+            (int)count, (int)mpack_writer_buffer_left(writer), (int)used, (int)size);
 
     // grow to fit the data
     // TODO: this really needs to correctly test for overflow
-    size_t new_size = writer->size * 2;
-    while (new_size < writer->used + count)
+    size_t new_size = size * 2;
+    while (new_size < used + count)
         new_size *= 2;
 
-    mpack_log("flush growing buffer size from %i to %i\n", (int)writer->size, (int)new_size);
+    mpack_log("flush growing buffer size from %i to %i\n", (int)size, (int)new_size);
 
     // grow the buffer
-    char* new_buffer = (char*)mpack_realloc(writer->buffer, writer->used, new_size);
+    char* new_buffer = (char*)mpack_realloc(writer->buffer, used, new_size);
     if (new_buffer == NULL) {
         mpack_writer_flag_error(writer, mpack_error_memory);
         return;
     }
+    writer->current = new_buffer + used;
     writer->buffer = new_buffer;
-    writer->size = new_size;
+    writer->end = writer->buffer + new_size;
 
     // append the extra data
     if (count > 0) {
-        mpack_memcpy(writer->buffer + writer->used, data, count);
-        writer->used += count;
+        mpack_memcpy(writer->current, data, count);
+        writer->current += count;
     }
 
-    mpack_log("new buffer %p, used %i\n", new_buffer, (int)writer->used);
+    mpack_log("new buffer %p, used %i\n", new_buffer, (int)mpack_writer_buffer_used(writer));
 }
 
 static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
-    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)writer->context;
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)mpack_writer_get_reserved(writer);
 
     if (mpack_writer_error(writer) == mpack_ok) {
 
         // shrink the buffer to an appropriate size if the data is
         // much smaller than the buffer
-        if (writer->used < writer->size / 2) {
-            char* buffer = (char*)mpack_realloc(writer->buffer, writer->used, writer->used);
+        if (mpack_writer_buffer_used(writer) < mpack_writer_buffer_size(writer) / 2) {
+            size_t used = mpack_writer_buffer_used(writer);
+
+            // We always return a non-null pointer that must be freed, even if
+            // nothing was written. malloc() and realloc() do not necessarily
+            // do this so we enforce it ourselves.
+            size_t size = (used != 0) ? used : 1;
+
+            char* buffer = (char*)mpack_realloc(writer->buffer, used, size);
             if (!buffer) {
                 MPACK_FREE(writer->buffer);
                 mpack_writer_flag_error(writer, mpack_error_memory);
                 return;
             }
             writer->buffer = buffer;
-            writer->size = writer->used;
+            writer->end = (writer->current = writer->buffer + used);
         }
 
         *growable_writer->target_data = writer->buffer;
-        *growable_writer->target_size = writer->used;
+        *growable_writer->target_size = mpack_writer_buffer_used(writer);
         writer->buffer = NULL;
 
     } else if (writer->buffer) {
@@ -829,13 +1030,6 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
     }
 
     writer->context = NULL;
-}
-
-static char* mpack_writer_get_reserved(mpack_writer_t* writer) {
-    // This is in a separate function in order to avoid false strict aliasing
-    // warnings. We aren't actually violating strict aliasing (the reserved
-    // space is only ever dereferenced as an mpack_growable_writer_t.)
-    return (char*)writer->reserved;
 }
 
 void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size_t* target_size) {
@@ -860,7 +1054,6 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
     }
 
     mpack_writer_init(writer, buffer, capacity);
-    mpack_writer_set_context(writer, growable_writer);
     mpack_writer_set_flush(writer, mpack_growable_writer_flush);
     mpack_writer_set_teardown(writer, mpack_growable_writer_teardown);
 }
@@ -875,40 +1068,54 @@ static void mpack_file_writer_flush(mpack_writer_t* writer, const char* buffer, 
 }
 
 static void mpack_file_writer_teardown(mpack_writer_t* writer) {
+    MPACK_FREE(writer->buffer);
+    writer->buffer = NULL;
+    writer->context = NULL;
+}
+
+static void mpack_file_writer_teardown_close(mpack_writer_t* writer) {
     FILE* file = (FILE*)writer->context;
 
     if (file) {
         int ret = fclose(file);
-        writer->context = NULL;
         if (ret != 0)
             mpack_writer_flag_error(writer, mpack_error_io);
     }
 
-    MPACK_FREE(writer->buffer);
-    writer->buffer = NULL;
+    mpack_file_writer_teardown(writer);
 }
 
-void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
-    mpack_assert(filename != NULL, "filename is NULL");
+void mpack_writer_init_stdfile(mpack_writer_t* writer, FILE* file, bool close_when_done) {
+    mpack_assert(file != NULL, "file is NULL");
 
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
-        return;
-    }
-
-    FILE* file = fopen(filename, "wb");
-    if (file == NULL) {
-        MPACK_FREE(buffer);
-        mpack_writer_init_error(writer, mpack_error_io);
+        if (close_when_done) {
+            fclose(file);
+        }
         return;
     }
 
     mpack_writer_init(writer, buffer, capacity);
     mpack_writer_set_context(writer, file);
     mpack_writer_set_flush(writer, mpack_file_writer_flush);
-    mpack_writer_set_teardown(writer, mpack_file_writer_teardown);
+    mpack_writer_set_teardown(writer, close_when_done ?
+            mpack_file_writer_teardown_close :
+            mpack_file_writer_teardown);
+}
+
+void mpack_writer_init_filename(mpack_writer_t* writer, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        mpack_writer_init_error(writer, mpack_error_io);
+        return;
+    }
+
+    mpack_writer_init_stdfile(writer, file, true);
 }
 #endif
 
@@ -926,15 +1133,35 @@ MPACK_STATIC_INLINE void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
     // This is a bit ugly; we reset used before calling flush so that
     // a flush function can distinguish between flushing the buffer
     // versus flushing external data. see mpack_growable_writer_flush()
-    size_t used = writer->used;
-    writer->used = 0;
+    size_t used = mpack_writer_buffer_used(writer);
+    writer->current = writer->buffer;
     writer->flush(writer, writer->buffer, used);
+}
+
+void mpack_writer_flush_message(mpack_writer_t* writer) {
+    if (writer->error != mpack_ok)
+        return;
+
+    #if MPACK_WRITE_TRACKING
+    mpack_writer_flag_if_error(writer, mpack_track_check_empty(&writer->track));
+    if (writer->error != mpack_ok)
+        return;
+    #endif
+
+    if (writer->flush == NULL) {
+        mpack_break("cannot call mpack_writer_flush_message() without a flush function!");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+
+    if (mpack_writer_buffer_used(writer) > 0)
+        mpack_writer_flush_unchecked(writer);
 }
 
 // Ensures there are at least count bytes free in the buffer. This
 // will flag an error if the flush function fails to make enough
 // room in the buffer.
-static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
+MPACK_NOINLINE static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(count <= MPACK_WRITER_MINIMUM_BUFFER_SIZE,
             "cannot ensure %i bytes, this is more than the minimum buffer size %i!",
@@ -968,17 +1195,17 @@ static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
 // does not fit in the buffer (i.e. it straddles the edge of the
 // buffer.) If there is a flush function, it is guaranteed to be
 // called; otherwise mpack_error_too_big is raised.
-static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, size_t count) {
+MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (mpack_writer_error(writer) != mpack_ok)
         return;
     mpack_log("big write for %i bytes from %p, %i space left in buffer\n",
-            (int)count, p, (int)(writer->size - writer->used));
-    mpack_assert(count > writer->size - writer->used,
+            (int)count, p, (int)mpack_writer_buffer_left(writer));
+    mpack_assert(count > mpack_writer_buffer_left(writer),
             "big write requested for %i bytes, but there is %i available "
             "space in buffer. should have called mpack_write_native() instead",
-            (int)count, (int)(writer->size - writer->used));
+            (int)count, (int)(mpack_writer_buffer_left(writer)));
 
     // we'll need a flush function
     if (!writer->flush) {
@@ -996,13 +1223,13 @@ static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, s
     // though they may have changed, and there may still be data in the buffer.
 
     // flush the extra data directly if it doesn't fit in the buffer
-    if (count > writer->size - writer->used) {
+    if (count > mpack_writer_buffer_left(writer)) {
         writer->flush(writer, p, count);
         if (mpack_writer_error(writer) != mpack_ok)
             return;
     } else {
-        mpack_memcpy(writer->buffer + writer->used, p, count);
-        writer->used += count;
+        mpack_memcpy(writer->current, p, count);
+        writer->current += count;
     }
 }
 
@@ -1010,11 +1237,11 @@ static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, s
 MPACK_STATIC_INLINE void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
-    if (writer->size - writer->used < count) {
+    if (mpack_writer_buffer_left(writer) < count) {
         mpack_write_native_straddle(writer, p, count);
     } else {
-        mpack_memcpy(writer->buffer + writer->used, p, count);
-        writer->used += count;
+        mpack_memcpy(writer->current, p, count);
+        writer->current += count;
     }
 }
 
@@ -1026,8 +1253,8 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     #endif
 
     // flush any outstanding data
-    if (mpack_writer_error(writer) == mpack_ok && writer->used != 0 && writer->flush != NULL) {
-        writer->flush(writer, writer->buffer, writer->used);
+    if (mpack_writer_error(writer) == mpack_ok && mpack_writer_buffer_used(writer) != 0 && writer->flush != NULL) {
+        writer->flush(writer, writer->buffer, mpack_writer_buffer_used(writer));
         writer->flush = NULL;
     }
 
@@ -1050,7 +1277,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
         case mpack_type_str: mpack_start_str(writer, value.v.l); break;
         case mpack_type_bin: mpack_start_bin(writer, value.v.l); break;
-        case mpack_type_ext: mpack_start_ext(writer, value.exttype, value.v.l); break;
+        case mpack_type_ext: mpack_start_ext(writer, value.v.ext.exttype, value.v.ext.length); break;
 
         case mpack_type_array: mpack_start_array(writer, value.v.n); break;
         case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;
@@ -1063,8 +1290,8 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
 MPACK_STATIC_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
-    if (mpack_writer_buffer_left(writer) >= 1 || mpack_writer_ensure(writer, 1))
-        writer->buffer[writer->used++] = value;
+    if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= 1) || mpack_writer_ensure(writer, 1))
+        *(writer->current++) = value;
 }
 
 void mpack_write_nil(mpack_writer_t* writer) {
@@ -1201,15 +1428,15 @@ MPACK_STATIC_INLINE void mpack_encode_fixstr(char* p, uint8_t count) {
 }
 
 MPACK_STATIC_INLINE void mpack_encode_str8(char* p, uint8_t count) {
-    // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-    // fixraw, raw16 and raw32. This should not be used in compatibility mode.
     mpack_assert(count > 31);
     mpack_store_u8(p, 0xd9);
     mpack_store_u8(p + 1, count);
 }
 
 MPACK_STATIC_INLINE void mpack_encode_str16(char* p, uint16_t count) {
-    mpack_assert(count > UINT8_MAX);
+    // we might be encoding a raw in compatibility mode, so we
+    // allow count to be in the range [32, UINT8_MAX].
+    mpack_assert(count > 31);
     mpack_store_u8(p, 0xda);
     mpack_store_u16(p + 1, count);
 }
@@ -1292,11 +1519,11 @@ MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t co
 // This is a macro wrapper to the encode functions to encode
 // directly into the buffer. If mpack_writer_ensure() fails
 // it will flag an error so we don't have to do anything.
-#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                    \
-    if (mpack_writer_buffer_left(writer) >= size || mpack_writer_ensure(writer, size)) {  \
-        encode_fn(writer->buffer + writer->used, __VA_ARGS__);                            \
-        writer->used += size;                                                             \
-    }                                                                                     \
+#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                                 \
+    if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) { \
+        encode_fn(writer->current, __VA_ARGS__);                                                       \
+        writer->current += size;                                                                       \
+    }                                                                                                  \
 } while (0)
 
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
@@ -1496,26 +1723,35 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_push(writer, mpack_type_map, count);
 }
 
-void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
-    mpack_writer_track_element(writer);
-
+static void mpack_start_str_notrack(mpack_writer_t* writer, uint32_t count) {
     if (count <= 31) {
         MPACK_WRITE_ENCODED(mpack_encode_fixstr, MPACK_TAG_SIZE_FIXSTR, (uint8_t)count);
-    } else if (count <= UINT8_MAX) {
-        // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-        // fixraw, raw16 and raw32. This should not be used in compatibility mode.
+
+    // str8 is only supported in v5 or later.
+    } else if (count <= UINT8_MAX
+            #if MPACK_COMPATIBILITY
+            && writer->version >= mpack_version_v5
+            #endif
+            ) {
         MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
+
     } else if (count <= UINT16_MAX) {
         MPACK_WRITE_ENCODED(mpack_encode_str16, MPACK_TAG_SIZE_STR16, (uint16_t)count);
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_str32, MPACK_TAG_SIZE_STR32, (uint32_t)count);
     }
-
-    mpack_writer_track_push(writer, mpack_type_str, count);
 }
 
-void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
-    mpack_writer_track_element(writer);
+static void mpack_start_bin_notrack(mpack_writer_t* writer, uint32_t count) {
+    #if MPACK_COMPATIBILITY
+    // In the v4 spec, there was only the raw type for any kind of
+    // variable-length data. In v4 mode, we support the bin functions,
+    // but we produce an old-style raw.
+    if (writer->version <= mpack_version_v4) {
+        mpack_start_str_notrack(writer, count);
+        return;
+    }
+    #endif
 
     if (count <= UINT8_MAX) {
         MPACK_WRITE_ENCODED(mpack_encode_bin8, MPACK_TAG_SIZE_BIN8, (uint8_t)count);
@@ -1524,11 +1760,29 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_bin32, MPACK_TAG_SIZE_BIN32, (uint32_t)count);
     }
+}
 
+void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+    mpack_start_str_notrack(writer, count);
+    mpack_writer_track_push(writer, mpack_type_str, count);
+}
+
+void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+    mpack_start_bin_notrack(writer, count);
     mpack_writer_track_push(writer, mpack_type_bin, count);
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
+    #if MPACK_COMPATIBILITY
+    if (writer->version <= mpack_version_v4) {
+        mpack_break("Ext types require spec version v5 or later. This writer is in v%i mode.", (int)writer->version);
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+    #endif
+
     mpack_writer_track_element(writer);
 
     if (count == 1) {
@@ -1560,9 +1814,57 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
     mpack_assert(data != NULL, "data for string of length %i is NULL", (int)count);
-    mpack_start_str(writer, count);
-    mpack_write_bytes(writer, data, count);
-    mpack_finish_str(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_writer_track_element(writer);
+    mpack_start_str_notrack(writer, count);
+    mpack_write_native(writer, data, count);
+    #else
+
+    mpack_writer_track_element(writer);
+
+    if (count <= 31) {
+        // The minimum buffer size when using a flush function is guaranteed to
+        // fit the largest possible fixstr.
+        size_t size = count + MPACK_TAG_SIZE_FIXSTR;
+        if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) {
+            char* MPACK_RESTRICT p = writer->current;
+            mpack_encode_fixstr(p, (uint8_t)count);
+            mpack_memcpy(p + MPACK_TAG_SIZE_FIXSTR, data, count);
+            writer->current += count + MPACK_TAG_SIZE_FIXSTR;
+        }
+        return;
+    }
+
+    if (count <= UINT8_MAX
+            #if MPACK_COMPATIBILITY
+            && writer->version >= mpack_version_v5
+            #endif
+            ) {
+        if (count + MPACK_TAG_SIZE_STR8 <= mpack_writer_buffer_left(writer)) {
+            char* MPACK_RESTRICT p = writer->current;
+            mpack_encode_str8(p, (uint8_t)count);
+            mpack_memcpy(p + MPACK_TAG_SIZE_STR8, data, count);
+            writer->current += count + MPACK_TAG_SIZE_STR8;
+        } else {
+            MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
+            mpack_write_native(writer, data, count);
+        }
+        return;
+    }
+
+    // str16 and str32 are likely to be a significant fraction of the buffer
+    // size, so we don't bother with a combined space check in order to
+    // minimize code size.
+    if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_str16, MPACK_TAG_SIZE_STR16, (uint16_t)count);
+        mpack_write_native(writer, data, count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_str32, MPACK_TAG_SIZE_STR32, (uint32_t)count);
+        mpack_write_native(writer, data, count);
+    }
+
+    #endif
 }
 
 void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count) {
@@ -1612,8 +1914,10 @@ void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) 
 void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr) {
     mpack_assert(cstr != NULL, "cstr pointer is NULL");
     size_t length = mpack_strlen(cstr);
-    if (length > UINT32_MAX)
+    if (length > UINT32_MAX) {
         mpack_writer_flag_error(writer, mpack_error_invalid);
+        return;
+    }
     mpack_write_utf8(writer, cstr, (uint32_t)length);
 }
 
@@ -1627,7 +1931,27 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
 #endif
 
 
-/* mpack-reader.c */
+/* mpack/mpack-reader.c.c */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #define MPACK_INTERNAL 1
 
@@ -1643,7 +1967,8 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     mpack_memset(reader, 0, sizeof(*reader));
     reader->buffer = buffer;
     reader->size = size;
-    reader->left = count;
+    reader->data = buffer;
+    reader->end = buffer + count;
 
     #if MPACK_READ_TRACKING
     mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
@@ -1665,17 +1990,8 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     mpack_assert(data != NULL, "data is NULL");
 
     mpack_memset(reader, 0, sizeof(*reader));
-    reader->left = count;
-
-    // unfortunately we have to cast away the const to store the buffer,
-    // but we won't be modifying it because there's no fill function.
-    // the buffer size is left at 0 to ensure no fill function can be
-    // set or used (see mpack_reader_set_fill().)
-    #ifdef __cplusplus
-    reader->buffer = const_cast<char*>(data);
-    #else
-    reader->buffer = (char*)(uintptr_t)data;
-    #endif
+    reader->data = data;
+    reader->end = data + count;
 
     #if MPACK_READ_TRACKING
     mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
@@ -1707,20 +2023,18 @@ void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
 
 void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
     mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    MPACK_UNUSED(reader);
-    MPACK_UNUSED(skip);
-    #else
     reader->skip = skip;
-    #endif
 }
 
 #if MPACK_STDIO
 static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_t count) {
+    if (feof((FILE *)reader->context)) {
+       mpack_reader_flag_error(reader, mpack_error_eof);
+       return 0;
+    }
     return fread((void*)buffer, 1, count, (FILE*)reader->context);
 }
 
-#if !MPACK_OPTIMIZE_FOR_SIZE
 static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     if (mpack_reader_error(reader) != mpack_ok)
         return;
@@ -1742,48 +2056,61 @@ static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     // If the stream is not seekable, fall back to the fill function.
     mpack_reader_skip_using_fill(reader, count);
 }
-#endif
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
+    MPACK_FREE(reader->buffer);
+    reader->buffer = NULL;
+    reader->context = NULL;
+    reader->size = 0;
+    reader->fill = NULL;
+    reader->skip = NULL;
+    reader->teardown = NULL;
+}
+
+static void mpack_file_reader_teardown_close(mpack_reader_t* reader) {
     FILE* file = (FILE*)reader->context;
 
     if (file) {
         int ret = fclose(file);
-        reader->context = NULL;
         if (ret != 0)
             mpack_reader_flag_error(reader, mpack_error_io);
     }
 
-    MPACK_FREE(reader->buffer);
-    reader->buffer = NULL;
-    reader->size = 0;
-    reader->fill = NULL;
+    mpack_file_reader_teardown(reader);
 }
 
-void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
-    mpack_assert(filename != NULL, "filename is NULL");
+void mpack_reader_init_stdfile(mpack_reader_t* reader, FILE* file, bool close_when_done) {
+    mpack_assert(file != NULL, "file is NULL");
 
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
         mpack_reader_init_error(reader, mpack_error_memory);
-        return;
-    }
-
-    FILE* file = fopen(filename, "rb");
-    if (file == NULL) {
-        MPACK_FREE(buffer);
-        mpack_reader_init_error(reader, mpack_error_io);
+        if (close_when_done) {
+            fclose(file);
+        }
         return;
     }
 
     mpack_reader_init(reader, buffer, capacity, 0);
     mpack_reader_set_context(reader, file);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
-    #if !MPACK_OPTIMIZE_FOR_SIZE
     mpack_reader_set_skip(reader, mpack_file_reader_skip);
-    #endif
-    mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
+    mpack_reader_set_teardown(reader, close_when_done ?
+            mpack_file_reader_teardown_close :
+            mpack_file_reader_teardown);
+}
+
+void mpack_reader_init_filename(mpack_reader_t* reader, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        mpack_reader_init_error(reader, mpack_error_io);
+        return;
+    }
+
+    mpack_reader_init_stdfile(reader, file, true);
 }
 #endif
 
@@ -1811,8 +2138,8 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
     #endif
 
     if (data)
-        *data = reader->buffer + reader->pos;
-    return reader->left;
+        *data = reader->data;
+    return (size_t)(reader->end - reader->data);
 }
 
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
@@ -1820,44 +2147,46 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
     if (reader->error == mpack_ok) {
         reader->error = error;
-        reader->left = 0;
+        reader->end = reader->data;
         if (reader->error_fn)
             reader->error_fn(reader, error);
     }
 }
 
-// A helper to call the reader fill function. This makes sure it's
-// implemented and guards against overflow in case it returns -1.
-static size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
-    mpack_assert(reader->fill != NULL, "mpack_fill() called with no fill function?");
+// Loops on the fill function, reading between the minimum and
+// maximum number of bytes and flagging an error if it fails.
+MPACK_NOINLINE static size_t mpack_fill_range(mpack_reader_t* reader, char* p, size_t min_bytes, size_t max_bytes) {
+    mpack_assert(reader->fill != NULL, "mpack_fill_range() called with no fill function?");
+    mpack_assert(min_bytes > 0, "cannot fill zero bytes!");
+    mpack_assert(max_bytes >= min_bytes, "min_bytes %i cannot be larger than max_bytes %i!",
+            (int)min_bytes, (int)max_bytes);
 
-    size_t ret = reader->fill(reader, p, count);
-    if (ret == ((size_t)(-1)))
-        return 0;
+    size_t count = 0;
+    while (count < min_bytes) {
+        size_t read = reader->fill(reader, p + count, max_bytes - count);
 
-    return ret;
+        // Reader fill functions can flag an error or return 0 on failure. We
+        // also guard against functions that -1 just in case.
+        if (mpack_reader_error(reader) != mpack_ok)
+            return 0;
+        if (read == 0 || read == ((size_t)(-1))) {
+            mpack_reader_flag_error(reader, mpack_error_io);
+            return 0;
+        }
+
+        count += read;
+    }
+    return count;
 }
 
-// Fills the buffer when there is already some data in the buffer. The
-// existing data is moved to the start of the buffer.
-static void mpack_partial_fill(mpack_reader_t* reader) {
-    mpack_memmove(reader->buffer, reader->buffer + reader->pos, reader->left);
-    reader->pos = 0;
-    reader->left += mpack_fill(reader, reader->buffer + reader->left, reader->size - reader->left);
-}
-
-bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
+MPACK_NOINLINE bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
-    if (count <= reader->left) {
-        mpack_assert(0,
-                "big ensure requested for %i bytes, but there are %i bytes "
-                "left in buffer. call mpack_reader_ensure() instead",
-                (int)count, (int)reader->left);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return false;
-    }
+    mpack_assert(count > (size_t)(reader->end - reader->data),
+            "straddling ensure requested for %i bytes, but there are %i bytes "
+            "left in buffer. call mpack_reader_ensure() instead",
+            (int)count, (int)(reader->end - reader->data));
 
     // we'll need a fill function to get more data. if there's no
     // fill function, the buffer should contain an entire MessagePack
@@ -1868,23 +2197,33 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
         return false;
     }
 
-    mpack_assert(count <= reader->size, "cannot ensure byte count %i larger than buffer size %i",
-            (int)count, (int)reader->size);
-
-    // re-fill as much as possible
-    mpack_partial_fill(reader);
-
-    if (reader->left < count) {
-        mpack_reader_flag_error(reader, mpack_error_io);
+    // we need enough space in the buffer. if the buffer is not
+    // big enough, we return mpack_error_too_big (since this is
+    // for an in-place read larger than the buffer size.)
+    if (count > reader->size) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
         return false;
     }
 
+    // move the existing data to the start of the buffer
+    size_t left = (size_t)(reader->end - reader->data);
+    mpack_memmove(reader->buffer, reader->data, left);
+    reader->end -= reader->data - reader->buffer;
+    reader->data = reader->buffer;
+
+    // read at least the necessary number of bytes, accepting up to the
+    // buffer size
+    size_t read = mpack_fill_range(reader, reader->buffer + left,
+            count - left, reader->size - left);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return false;
+    reader->end += read;
     return true;
 }
 
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
-void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_NOINLINE void mpack_read_native_straddle(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (mpack_reader_error(reader) != mpack_ok) {
@@ -1892,14 +2231,15 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
         return;
     }
 
+    size_t left = (size_t)(reader->end - reader->data);
     mpack_log("big read for %i bytes into %p, %i left in buffer, buffer size %i\n",
-            (int)count, p, (int)reader->left, (int)reader->size);
+            (int)count, p, (int)left, (int)reader->size);
 
-    if (count <= reader->left) {
+    if (count <= left) {
         mpack_assert(0,
                 "big read requested for %i bytes, but there are %i bytes "
                 "left in buffer. call mpack_read_native() instead",
-                (int)count, (int)reader->left);
+                (int)count, (int)left);
         mpack_reader_flag_error(reader, mpack_error_bug);
         mpack_memset(p, 0, count);
         return;
@@ -1927,65 +2267,38 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     }
 
     // flush what's left of the buffer
-    if (reader->left > 0) {
-        mpack_log("flushing %i bytes remaining in buffer\n", (int)reader->left);
-        mpack_memcpy(p, reader->buffer + reader->pos, reader->left);
-        count -= reader->left;
-        p += reader->left;
-        reader->pos += reader->left;
-        reader->left = 0;
+    if (left > 0) {
+        mpack_log("flushing %i bytes remaining in buffer\n", (int)left);
+        mpack_memcpy(p, reader->data, left);
+        count -= left;
+        p += left;
+        reader->data += left;
     }
 
-    // we read only in multiples of the buffer size. read the middle portion, if any
-    size_t middle = count - (count % reader->size);
-    if (middle > 0) {
-        mpack_log("reading %i bytes in middle\n", (int)middle);
-        if (mpack_fill(reader, p, middle) < middle) {
-            mpack_reader_flag_error(reader, mpack_error_io);
-            mpack_memset(p, 0, count);
+    // if the remaining data needed is some small fraction of the
+    // buffer size, we'll try to fill the buffer as much as possible
+    // and copy the needed data out.
+    if (count <= reader->size / MPACK_READER_SMALL_FRACTION_DENOMINATOR) {
+        size_t read = mpack_fill_range(reader, reader->buffer, count, reader->size);
+        if (mpack_reader_error(reader) != mpack_ok)
             return;
-        }
-        count -= middle;
-        p += middle;
-        if (count == 0)
-            return;
-    }
+        mpack_memcpy(p, reader->buffer, count);
+        reader->data = reader->buffer + count;
+        reader->end = reader->buffer + read;
 
-    // fill the buffer
-    reader->pos = 0;
-    reader->left = mpack_fill(reader, reader->buffer, reader->size);
-    mpack_log("filled %i bytes into buffer\n", (int)reader->left);
-    if (reader->left < count) {
-        mpack_reader_flag_error(reader, mpack_error_io);
-        mpack_memset(p, 0, count);
-        return;
+    // otherwise we read the remaining data directly into the target.
+    } else {
+        mpack_log("reading %i additional bytes\n", (int)count);
+        mpack_fill_range(reader, p, count, count);
     }
-
-    // serve the remainder
-    mpack_log("serving %i remaining bytes from %p to %p\n", (int)count, reader->buffer+reader->pos,p);
-    mpack_memcpy(p, reader->buffer + reader->pos, count);
-    reader->pos += count;
-    reader->left -= count;
 }
 
-void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
-    if (mpack_reader_error(reader) != mpack_ok)
-        return;
-    mpack_log("skip requested for %i bytes\n", (int)count);
-    mpack_reader_track_bytes(reader, count);
-
-    // check if we have enough in the buffer already
-    if (reader->left >= count) {
-        mpack_log("skipping %i bytes still in buffer\n", (int)count);
-        reader->left -= count;
-        reader->pos += count;
-        return;
-    }
+MPACK_NOINLINE static void mpack_skip_bytes_straddle(mpack_reader_t* reader, size_t count) {
 
     // we'll need at least a fill function to skip more data. if there's
     // no fill function, the buffer should contain an entire MessagePack
     // object, so we raise mpack_error_invalid instead of mpack_error_io
-    // on truncated data. (see mpack_read_native_big())
+    // on truncated data. (see mpack_read_native_straddle())
     if (reader->fill == NULL) {
         mpack_log("reader has no fill function!\n");
         mpack_reader_flag_error(reader, mpack_error_invalid);
@@ -1993,12 +2306,11 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     }
 
     // discard whatever's left in the buffer
-    mpack_log("discarding %i bytes still in buffer\n", (int)reader->left);
-    count -= reader->left;
-    reader->pos += reader->left;
-    reader->left = 0;
+    size_t left = (size_t)(reader->end - reader->data);
+    mpack_log("discarding %i bytes still in buffer\n", (int)left);
+    count -= left;
+    reader->data = reader->end;
 
-    #if !MPACK_OPTIMIZE_FOR_SIZE
     // use the skip function if we've got one, and if we're trying
     // to skip a lot of data. if we only need to skip some tiny
     // fraction of the buffer size, it's probably better to just
@@ -2008,21 +2320,37 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
         reader->skip(reader, count);
         return;
     }
-    #endif
 
     mpack_reader_skip_using_fill(reader, count);
 }
 
-static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
+void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
+    mpack_log("skip requested for %i bytes\n", (int)count);
+    mpack_reader_track_bytes(reader, count);
+
+    // check if we have enough in the buffer already
+    size_t left = (size_t)(reader->end - reader->data);
+    if (left >= count) {
+        mpack_log("skipping %i bytes still in buffer\n", (int)count);
+        reader->data += count;
+        return;
+    }
+
+    mpack_skip_bytes_straddle(reader, count);
+}
+
+MPACK_NOINLINE static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
     mpack_assert(reader->fill != NULL, "missing fill function!");
-    mpack_assert(reader->left == 0, "there are bytes left in the buffer!");
+    mpack_assert(reader->data == reader->end, "there are bytes left in the buffer!");
     mpack_assert(reader->error == mpack_ok, "should not have called this in an error state (%i)", reader->error);
     mpack_log("skip using fill for %i bytes\n", (int)count);
 
     // fill and discard multiples of the buffer size
     while (count > reader->size) {
         mpack_log("filling and discarding buffer of %i bytes\n", (int)reader->size);
-        if (mpack_fill(reader, reader->buffer, reader->size) < reader->size) {
+        if (mpack_fill_range(reader, reader->buffer, reader->size, reader->size) < reader->size) {
             mpack_reader_flag_error(reader, mpack_error_io);
             return;
         }
@@ -2030,15 +2358,15 @@ static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
     }
 
     // fill the buffer as much as possible
-    reader->pos = 0;
-    reader->left = mpack_fill(reader, reader->buffer, reader->size);
-    if (reader->left < count) {
+    reader->data = reader->buffer;
+    size_t read = mpack_fill_range(reader, reader->buffer, count, reader->size);
+    if (read < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return;
     }
-    mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)reader->left, (int)count);
-    reader->pos += count;
-    reader->left -= count;
+    reader->end = reader->data + read;
+    mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)read, (int)count);
+    reader->data += count;
 }
 
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
@@ -2143,41 +2471,6 @@ char* mpack_read_bytes_alloc_impl(mpack_reader_t* reader, size_t count, bool nul
 }
 #endif
 
-// internal inplace reader for when it straddles the end of the buffer
-static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t count) {
-
-    // we should only arrive here from inplace straddle; this should already be checked
-    mpack_assert(mpack_reader_error(reader) == mpack_ok, "already in error state? %s",
-            mpack_error_to_string(mpack_reader_error(reader)));
-    mpack_assert(reader->left < count, "already enough bytes in buffer: %i left, %i count", (int)reader->left, (int)count);
-
-    // we'll need a fill function to get more data. if there's no
-    // fill function, the buffer should contain an entire MessagePack
-    // object, so we raise mpack_error_invalid instead of mpack_error_io
-    // on truncated data.
-    if (reader->fill == NULL) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return NULL;
-    }
-
-    // make sure the buffer is big enough to actually fit the data
-    if (count > reader->size) {
-        mpack_reader_flag_error(reader, mpack_error_too_big);
-        return NULL;
-    }
-
-    // re-fill as much as possible
-    mpack_partial_fill(reader);
-
-    if (reader->left < count) {
-        mpack_reader_flag_error(reader, mpack_error_io);
-        return NULL;
-    }
-    reader->pos += count;
-    reader->left -= count;
-    return reader->buffer;
-}
-
 // read inplace without tracking (since there are different
 // tracking modes for different inplace readers)
 static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size_t count) {
@@ -2185,13 +2478,18 @@ static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size
         return NULL;
 
     // if we have enough bytes already in the buffer, we can return it directly.
-    if (reader->left >= count) {
-        reader->pos += count;
-        reader->left -= count;
-        return reader->buffer + reader->pos - count;
+    if ((size_t)(reader->end - reader->data) >= count) {
+        const char* bytes = reader->data;
+        reader->data += count;
+        return bytes;
     }
 
-    return mpack_read_bytes_inplace_big(reader, count);
+    if (!mpack_reader_ensure(reader, count))
+        return NULL;
+
+    const char* bytes = reader->data;
+    reader->data += count;
+    return bytes;
 }
 
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
@@ -2211,14 +2509,12 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count) {
     return str;
 }
 
-// Decodes a tag from a byte buffer. The size of the bytes buffer
-// must be at least MPACK_MINIMUM_TAG_SIZE.
 static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
     if (!mpack_reader_ensure(reader, 1))
         return 0;
-    uint8_t type = mpack_load_u8(reader->buffer + reader->pos);
+    uint8_t type = mpack_load_u8(reader->data);
 
     // unfortunately, by far the fastest way to parse a tag is to switch
     // on the first byte, and to explicitly list every possible byte. so for
@@ -2233,32 +2529,27 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         // positive fixnum
         case 0x0: case 0x1: case 0x2: case 0x3:
         case 0x4: case 0x5: case 0x6: case 0x7:
-            tag->type = mpack_type_uint;
-            tag->v.u = type;
+            *tag = mpack_tag_make_uint(type);
             return 1;
 
         // negative fixnum
         case 0xe: case 0xf:
-            tag->type = mpack_type_int;
-            tag->v.i = (int32_t)(int8_t)type;
+            *tag = mpack_tag_make_int((int8_t)type);
             return 1;
 
         // fixmap
         case 0x8:
-            tag->type = mpack_type_map;
-            tag->v.n = type & ~0xf0;
+            *tag = mpack_tag_make_map(type & ~0xf0u);
             return 1;
 
         // fixarray
         case 0x9:
-            tag->type = mpack_type_array;
-            tag->v.n = type & ~0xf0;
+            *tag = mpack_tag_make_array(type & ~0xf0u);
             return 1;
 
         // fixstr
         case 0xa: case 0xb:
-            tag->type = mpack_type_str;
-            tag->v.l = type & ~0xe0;
+            *tag = mpack_tag_make_str(type & ~0xe0u);
             return 1;
 
         // not one of the common infix types
@@ -2289,8 +2580,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f:
         case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
         case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
-            tag->type = mpack_type_uint;
-            tag->v.u = type;
+            *tag = mpack_tag_make_uint(type);
             return 1;
 
         // negative fixnum
@@ -2298,22 +2588,19 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
         case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
         case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
-            tag->type = mpack_type_int;
-            tag->v.i = (int8_t)type;
+            *tag = mpack_tag_make_int((int8_t)type);
             return 1;
 
         // fixmap
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-            tag->type = mpack_type_map;
-            tag->v.n = type & ~0xf0;
+            *tag = mpack_tag_make_map(type & ~0xf0u);
             return 1;
 
         // fixarray
         case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
         case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
-            tag->type = mpack_type_array;
-            tag->v.n = type & ~0xf0;
+            *tag = mpack_tag_make_array(type & ~0xf0u);
             return 1;
 
         // fixstr
@@ -2321,252 +2608,214 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0xa8: case 0xa9: case 0xaa: case 0xab: case 0xac: case 0xad: case 0xae: case 0xaf:
         case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
         case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
-            tag->type = mpack_type_str;
-            tag->v.l = type & ~0xe0;
+            *tag = mpack_tag_make_str(type & ~0xe0u);
             return 1;
         #endif
 
         // nil
         case 0xc0:
-            tag->type = mpack_type_nil;
+            *tag = mpack_tag_make_nil();
             return 1;
 
         // bool
         case 0xc2: case 0xc3:
-            tag->type = mpack_type_bool;
-            tag->v.b = type & 1;
+            *tag = mpack_tag_make_bool((bool)(type & 1));
             return 1;
 
         // bin8
         case 0xc4:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_BIN8))
                 return 0;
-            tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_u8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_bin(mpack_load_u8(reader->data + 1));
             return MPACK_TAG_SIZE_BIN8;
 
         // bin16
         case 0xc5:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_BIN16))
                 return 0;
-            tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_u16(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_bin(mpack_load_u16(reader->data + 1));
             return MPACK_TAG_SIZE_BIN16;
 
         // bin32
         case 0xc6:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_BIN32))
                 return 0;
-            tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_u32(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_bin(mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_BIN32;
 
         // ext8
         case 0xc7:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT8))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u8(reader->buffer + reader->pos + 1);
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 2);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 2), mpack_load_u8(reader->data + 1));
             return MPACK_TAG_SIZE_EXT8;
 
         // ext16
         case 0xc8:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT16))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u16(reader->buffer + reader->pos + 1);
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 3);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 3), mpack_load_u16(reader->data + 1));
             return MPACK_TAG_SIZE_EXT16;
 
         // ext32
         case 0xc9:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT32))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u32(reader->buffer + reader->pos + 1);
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 5);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 5), mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_EXT32;
 
         // float
         case 0xca:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FLOAT))
                 return 0;
-            tag->type = mpack_type_float;
-            tag->v.f = mpack_load_float(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_float(mpack_load_float(reader->data + 1));
             return MPACK_TAG_SIZE_FLOAT;
 
         // double
         case 0xcb:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_DOUBLE))
                 return 0;
-            tag->type = mpack_type_double;
-            tag->v.d = mpack_load_double(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_double(mpack_load_double(reader->data + 1));
             return MPACK_TAG_SIZE_DOUBLE;
 
         // uint8
         case 0xcc:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U8))
                 return 0;
-            tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_uint(mpack_load_u8(reader->data + 1));
             return MPACK_TAG_SIZE_U8;
 
         // uint16
         case 0xcd:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U16))
                 return 0;
-            tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u16(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_uint(mpack_load_u16(reader->data + 1));
             return MPACK_TAG_SIZE_U16;
 
         // uint32
         case 0xce:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U32))
                 return 0;
-            tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u32(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_uint(mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_U32;
 
         // uint64
         case 0xcf:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U64))
                 return 0;
-            tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u64(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_uint(mpack_load_u64(reader->data + 1));
             return MPACK_TAG_SIZE_U64;
 
         // int8
         case 0xd0:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I8))
                 return 0;
-            tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_int(mpack_load_i8(reader->data + 1));
             return MPACK_TAG_SIZE_I8;
 
         // int16
         case 0xd1:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I16))
                 return 0;
-            tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i16(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_int(mpack_load_i16(reader->data + 1));
             return MPACK_TAG_SIZE_I16;
 
         // int32
         case 0xd2:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I32))
                 return 0;
-            tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i32(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_int(mpack_load_i32(reader->data + 1));
             return MPACK_TAG_SIZE_I32;
 
         // int64
         case 0xd3:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I64))
                 return 0;
-            tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i64(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_int(mpack_load_i64(reader->data + 1));
             return MPACK_TAG_SIZE_I64;
 
         // fixext1
         case 0xd4:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT1))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = 1;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 1);
             return MPACK_TAG_SIZE_FIXEXT1;
 
         // fixext2
         case 0xd5:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT2))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = 2;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 2);
             return MPACK_TAG_SIZE_FIXEXT2;
 
         // fixext4
         case 0xd6:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT4))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = 4;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 4);
             return 2;
 
         // fixext8
         case 0xd7:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT8))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = 8;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 8);
             return MPACK_TAG_SIZE_FIXEXT8;
 
         // fixext16
         case 0xd8:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT16))
                 return 0;
-            tag->type = mpack_type_ext;
-            tag->v.l = 16;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 16);
             return MPACK_TAG_SIZE_FIXEXT16;
 
         // str8
         case 0xd9:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_STR8))
                 return 0;
-            tag->type = mpack_type_str;
-            tag->v.l = mpack_load_u8(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_str(mpack_load_u8(reader->data + 1));
             return MPACK_TAG_SIZE_STR8;
 
         // str16
         case 0xda:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_STR16))
                 return 0;
-            tag->type = mpack_type_str;
-            tag->v.l = mpack_load_u16(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_str(mpack_load_u16(reader->data + 1));
             return MPACK_TAG_SIZE_STR16;
 
         // str32
         case 0xdb:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_STR32))
                 return 0;
-            tag->type = mpack_type_str;
-            tag->v.l = mpack_load_u32(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_str(mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_STR32;
 
         // array16
         case 0xdc:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_ARRAY16))
                 return 0;
-            tag->type = mpack_type_array;
-            tag->v.n = mpack_load_u16(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_array(mpack_load_u16(reader->data + 1));
             return MPACK_TAG_SIZE_ARRAY16;
 
         // array32
         case 0xdd:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_ARRAY32))
                 return 0;
-            tag->type = mpack_type_array;
-            tag->v.n = mpack_load_u32(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_array(mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_ARRAY32;
 
         // map16
         case 0xde:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_MAP16))
                 return 0;
-            tag->type = mpack_type_map;
-            tag->v.n = mpack_load_u16(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_map(mpack_load_u16(reader->data + 1));
             return MPACK_TAG_SIZE_MAP16;
 
         // map32
         case 0xdf:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_MAP32))
                 return 0;
-            tag->type = mpack_type_map;
-            tag->v.n = mpack_load_u32(reader->buffer + reader->pos + 1);
+            *tag = mpack_tag_make_map(mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_MAP32;
 
         // reserved
@@ -2595,8 +2844,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     if (mpack_reader_track_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
-    mpack_tag_t tag;
-    mpack_memset(&tag, 0, sizeof(tag));
+    mpack_tag_t tag = MPACK_TAG_ZERO;
     size_t count = mpack_parse_tag(reader, &tag);
     if (count == 0)
         return mpack_tag_nil();
@@ -2611,8 +2859,10 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             break;
         case mpack_type_str:
         case mpack_type_bin:
-        case mpack_type_ext:
             track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
+            break;
+        case mpack_type_ext:
+            track_error = mpack_track_push(&reader->track, tag.type, tag.v.ext.length);
             break;
         default:
             break;
@@ -2624,11 +2874,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     }
     #endif
 
-    // the tag is guaranteed to have been read out of
-    // the buffer, so we advance past it
-    reader->pos += count;
-    reader->left -= count;
-
+    reader->data += count;
     return tag;
 }
 
@@ -2641,8 +2887,7 @@ mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
     if (mpack_reader_track_peek_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
-    mpack_tag_t tag;
-    mpack_memset(&tag, 0, sizeof(tag));
+    mpack_tag_t tag = MPACK_TAG_ZERO;
     if (mpack_parse_tag(reader, &tag) == 0)
         return mpack_tag_nil();
     return tag;
@@ -2662,7 +2907,7 @@ void mpack_discard(mpack_reader_t* reader) {
             mpack_done_bin(reader);
             break;
         case mpack_type_ext:
-            mpack_skip_bytes(reader, var.v.l);
+            mpack_skip_bytes(reader, var.v.ext.length);
             mpack_done_ext(reader);
             break;
         case mpack_type_array: {
@@ -2696,46 +2941,13 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
+
     switch (val.type) {
-
-        case mpack_type_nil:
-            fprintf(file, "null");
-            break;
-        case mpack_type_bool:
-            fprintf(file, val.v.b ? "true" : "false");
-            break;
-
-        case mpack_type_float:
-            fprintf(file, "%f", val.v.f);
-            break;
-        case mpack_type_double:
-            fprintf(file, "%f", val.v.d);
-            break;
-
-        case mpack_type_int:
-            fprintf(file, "%" PRIi64, val.v.i);
-            break;
-        case mpack_type_uint:
-            fprintf(file, "%" PRIu64, val.v.u);
-            break;
-
-        case mpack_type_bin:
-            fprintf(file, "<binary data of length %u>", val.v.l);
-            mpack_skip_bytes(reader, val.v.l);
-            mpack_done_bin(reader);
-            break;
-
-        case mpack_type_ext:
-            fprintf(file, "<ext data of type %i and length %u>", val.exttype, val.v.l);
-            mpack_skip_bytes(reader, val.v.l);
-            mpack_done_ext(reader);
-            break;
-
         case mpack_type_str:
             putc('"', file);
             for (size_t i = 0; i < val.v.l; ++i) {
@@ -2752,7 +2964,7 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
             }
             putc('"', file);
             mpack_done_str(reader);
-            break;
+            return;
 
         case mpack_type_array:
             fprintf(file, "[\n");
@@ -2770,7 +2982,7 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                 fprintf(file, "    ");
             putc(']', file);
             mpack_done_array(reader);
-            break;
+            return;
 
         case mpack_type_map:
             fprintf(file, "{\n");
@@ -2792,8 +3004,28 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                 fprintf(file, "    ");
             putc('}', file);
             mpack_done_map(reader);
+            return;
+
+        // The above cases return so as not to print a pseudo-json value. The
+        // below cases break and print pseudo-json.
+
+        case mpack_type_bin:
+            mpack_skip_bytes(reader, val.v.l);
+            mpack_done_bin(reader);
+            break;
+
+        case mpack_type_ext:
+            mpack_skip_bytes(reader, val.v.ext.length);
+            mpack_done_ext(reader);
+            break;
+
+        default:
             break;
     }
+
+    char buf[256];
+    mpack_tag_debug_pseudo_json(val, buf, sizeof(buf));
+    fputs(buf, file);
 }
 
 void mpack_print_file(const char* data, size_t len, FILE* file) {
@@ -2803,8 +3035,8 @@ void mpack_print_file(const char* data, size_t len, FILE* file) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 
-    int depth = 2;
-    for (int i = 0; i < depth; ++i)
+    size_t depth = 2;
+    for (size_t i = 0; i < depth; ++i)
         fprintf(file, "    ");
     mpack_print_element(&reader, depth, file);
     putc('\n', file);
@@ -2821,7 +3053,27 @@ void mpack_print_file(const char* data, size_t len, FILE* file) {
 #endif
 
 
-/* mpack-expect.c */
+/* mpack/mpack-expect.c.c */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #define MPACK_INTERNAL 1
 
@@ -2838,9 +3090,8 @@ MPACK_STATIC_INLINE uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
     uint8_t type;
     if (!mpack_reader_ensure(reader, sizeof(type)))
         return 0;
-    type = mpack_load_u8(reader->buffer + reader->pos);
-    reader->pos += sizeof(type);
-    reader->left -= sizeof(type);
+    type = mpack_load_u8(reader->data);
+    reader->data += sizeof(type);
     return type;
 }
 
@@ -2851,9 +3102,8 @@ MPACK_STATIC_INLINE uint16_t mpack_expect_native_u16(mpack_reader_t* reader) {
     uint16_t type;
     if (!mpack_reader_ensure(reader, sizeof(type)))
         return 0;
-    type = mpack_load_u16(reader->buffer + reader->pos);
-    reader->pos += sizeof(type);
-    reader->left -= sizeof(type);
+    type = mpack_load_u16(reader->data);
+    reader->data += sizeof(type);
     return type;
 }
 
@@ -2863,9 +3113,8 @@ MPACK_STATIC_INLINE uint32_t mpack_expect_native_u32(mpack_reader_t* reader) {
     uint32_t type;
     if (!mpack_reader_ensure(reader, sizeof(type)))
         return 0;
-    type = mpack_load_u32(reader->buffer + reader->pos);
-    reader->pos += sizeof(type);
-    reader->left -= sizeof(type);
+    type = mpack_load_u32(reader->data);
+    reader->data += sizeof(type);
     return type;
 }
 #endif
@@ -3321,6 +3570,32 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
     return binsize;
 }
 
+uint32_t mpack_expect_ext(mpack_reader_t* reader, int8_t* type) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_ext)
+        *type = var.v.ext.exttype;
+        return var.v.ext.length;
+    mpack_reader_flag_error(reader, mpack_error_type);
+    return 0;
+}
+
+size_t mpack_expect_ext_buf(mpack_reader_t* reader, int8_t* type, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
+    size_t extsize = mpack_expect_ext(reader, type);
+    if (mpack_reader_error(reader))
+        return 0;
+    if (extsize > bufsize) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
+        return 0;
+    }
+    mpack_read_bytes(reader, buf, extsize);
+    if (mpack_reader_error(reader))
+        return 0;
+    mpack_done_ext(reader);
+    return extsize;
+}
+
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
     uint32_t length = mpack_expect_str(reader);
     mpack_read_cstr(reader, buf, bufsize, length);
@@ -3423,6 +3698,24 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
     size_t length = mpack_expect_bin_max(reader, (uint32_t)maxsize);
     char* data = mpack_read_bytes_alloc(reader, length);
     mpack_done_bin(reader);
+
+    if (data)
+        *size = length;
+    return data;
+}
+#endif
+
+#ifdef MPACK_MALLOC
+char* mpack_expect_ext_alloc(mpack_reader_t* reader, int8_t* type, size_t maxsize, size_t* size) {
+    mpack_assert(size != NULL, "size cannot be NULL");
+    *size = 0;
+
+    if (maxsize > UINT32_MAX)
+        maxsize = UINT32_MAX;
+
+    size_t length = mpack_expect_ext_max(reader, type, (uint32_t)maxsize);
+    char* data = mpack_read_bytes_alloc(reader, length);
+    mpack_done_ext(reader);
 
     if (data)
         *size = length;
@@ -3541,7 +3834,27 @@ size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool fo
 #endif
 
 
-/* mpack-node.c */
+/* mpack/mpack-node.c.c */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #define MPACK_INTERNAL 1
 
@@ -3555,11 +3868,11 @@ size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool fo
  * Tree Parsing
  */
 
+#ifdef MPACK_MALLOC
+
 // fix up the alloc size to make sure it exactly fits the
 // maximum number of nodes it can contain (the allocator will
 // waste it back anyway, but we round it down just in case)
-
-#ifdef MPACK_MALLOC
 
 #define MPACK_NODES_PER_PAGE \
     ((MPACK_NODE_PAGE_SIZE - sizeof(mpack_tree_page_t)) / sizeof(mpack_node_data_t) + 1)
@@ -3576,7 +3889,6 @@ typedef struct mpack_level_t {
 
 typedef struct mpack_tree_parser_t {
     mpack_tree_t* tree;
-    const char* data;
 
     // We keep track of the number of "possible nodes" left in the data rather
     // than the number of bytes.
@@ -3598,7 +3910,7 @@ typedef struct mpack_tree_parser_t {
     // over bytes in the data.
     size_t possible_nodes_left;
 
-    mpack_node_data_t* nodes;
+    mpack_node_data_t* nodes; // next node in current page/pool
     size_t nodes_left; // nodes left in current page/pool
 
     size_t level;
@@ -3607,47 +3919,127 @@ typedef struct mpack_tree_parser_t {
     bool stack_owned;
 } mpack_tree_parser_t;
 
-MPACK_STATIC_INLINE uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
-    if (parser->possible_nodes_left < sizeof(uint8_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
-        return 0;
+#ifdef MPACK_MALLOC
+static bool mpack_tree_reserve_fill(mpack_tree_parser_t* parser, size_t bytes) {
+    mpack_assert(bytes > parser->possible_nodes_left,
+            "there are already enough bytes! call mpack_tree_reserve_bytes() instead.");
+    mpack_log("filling to reserve %i bytes\n", (int)bytes);
+    mpack_tree_t* tree = parser->tree;
+
+    // if the necessary bytes would put us over the maximum tree
+    // size, fail right away.
+    // TODO: check for overflow?
+    if (tree->data_length + bytes > tree->max_size) {
+        mpack_tree_flag_error(parser->tree, mpack_error_too_big);
+        return false;
     }
-    uint8_t val = mpack_load_u8(parser->data);
-    parser->data += sizeof(uint8_t);
-    parser->possible_nodes_left -= sizeof(uint8_t);
+
+    // we'll need a read function to fetch more data. if there's
+    // no read function, the data should contain an entire message
+    // (or messages), so we flag it as invalid.
+    if (tree->read_fn == NULL) {
+        mpack_log("tree has no read function!\n");
+        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+        return false;
+    }
+
+    // expand the buffer if needed
+    if (tree->data_length + bytes > tree->buffer_capacity) {
+
+        // TODO: check for overflow?
+        size_t new_capacity = (tree->buffer_capacity == 0) ? MPACK_BUFFER_SIZE : tree->buffer_capacity;
+        while (new_capacity < tree->data_length + bytes)
+            new_capacity *= 2;
+        if (new_capacity > tree->max_size)
+            new_capacity = tree->max_size;
+
+        mpack_log("expanding buffer from %i to %i\n", (int)tree->buffer_capacity, (int)new_capacity);
+
+        char* new_buffer;
+        if (tree->buffer == NULL)
+            new_buffer = (char*)MPACK_MALLOC(new_capacity);
+        else
+            new_buffer = (char*)mpack_realloc(tree->buffer, tree->data_length, new_capacity);
+
+        if (new_buffer == NULL) {
+            mpack_tree_flag_error(parser->tree, mpack_error_memory);
+            return false;
+        }
+
+        tree->data = new_buffer;
+        tree->buffer = new_buffer;
+        tree->buffer_capacity = new_capacity;
+    }
+
+    // request as much data as possible, looping until we have
+    // all the data we need
+    do {
+        size_t read = tree->read_fn(tree, tree->buffer + tree->data_length, tree->buffer_capacity - tree->data_length);
+
+        // As with the reader, node fill functions can flag an error or return
+        // 0 on failure. We also guard against functions that -1 just in case.
+        if (mpack_tree_error(tree) != mpack_ok)
+            return false;
+        if (read == 0 || read == (size_t)(-1)) {
+            mpack_tree_flag_error(parser->tree, mpack_error_io);
+            return false;
+        }
+
+        tree->data_length += read;
+        parser->possible_nodes_left += read;
+    } while (parser->possible_nodes_left < bytes);
+
+    parser->possible_nodes_left -= bytes;
+    return true;
+}
+#endif
+
+// Reserving bytes reads into the buffer if needed, and adjusts the
+// tree length and possible nodes left, but does not adjust the
+// tree size until the bytes are actually used.
+MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_parser_t* parser, size_t bytes) {
+    if (bytes <= parser->possible_nodes_left) {
+        parser->possible_nodes_left -= bytes;
+        return true;
+    }
+
+    #ifdef MPACK_MALLOC
+    return mpack_tree_reserve_fill(parser, bytes);
+    #else
+    mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+    return false;
+    #endif
+}
+
+MPACK_STATIC_INLINE uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
+    if (!mpack_tree_reserve_bytes(parser, sizeof(uint8_t)))
+        return 0;
+    uint8_t val = mpack_load_u8(parser->tree->data + parser->tree->size);
+    parser->tree->size += sizeof(uint8_t);
     return val;
 }
 
 MPACK_STATIC_INLINE uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
-    if (parser->possible_nodes_left < sizeof(uint16_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+    if (!mpack_tree_reserve_bytes(parser, sizeof(uint16_t)))
         return 0;
-    }
-    uint16_t val = mpack_load_u16(parser->data);
-    parser->data += sizeof(uint16_t);
-    parser->possible_nodes_left -= sizeof(uint16_t);
+    uint16_t val = mpack_load_u16(parser->tree->data + parser->tree->size);
+    parser->tree->size += sizeof(uint16_t);
     return val;
 }
 
 MPACK_STATIC_INLINE uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
-    if (parser->possible_nodes_left < sizeof(uint32_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+    if (!mpack_tree_reserve_bytes(parser, sizeof(uint32_t)))
         return 0;
-    }
-    uint32_t val = mpack_load_u32(parser->data);
-    parser->data += sizeof(uint32_t);
-    parser->possible_nodes_left -= sizeof(uint32_t);
+    uint32_t val = mpack_load_u32(parser->tree->data + parser->tree->size);
+    parser->tree->size += sizeof(uint32_t);
     return val;
 }
 
 MPACK_STATIC_INLINE uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
-    if (parser->possible_nodes_left < sizeof(uint64_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+    if (!mpack_tree_reserve_bytes(parser, sizeof(uint64_t)))
         return 0;
-    }
-    uint64_t val = mpack_load_u64(parser->data);
-    parser->data += sizeof(uint64_t);
-    parser->possible_nodes_left -= sizeof(uint64_t);
+    uint64_t val = mpack_load_u64(parser->tree->data + parser->tree->size);
+    parser->tree->size += sizeof(uint64_t);
     return val;
 }
 
@@ -3741,11 +4133,8 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
 
     // Each node is at least one byte. Count these bytes now to make
     // sure there is enough data left.
-    if (total > parser->possible_nodes_left) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+    if (!mpack_tree_reserve_bytes(parser, total))
         return;
-    }
-    parser->possible_nodes_left -= total;
 
     // If there are enough nodes left in the current page, no need to grow
     if (total <= parser->nodes_left) {
@@ -3815,22 +4204,20 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
 
 static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
     size_t length = node->len;
-    if (length > parser->possible_nodes_left) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+    if (!mpack_tree_reserve_bytes(parser, length))
         return;
-    }
-    node->value.bytes = parser->data;
-    parser->data += length;
-    parser->possible_nodes_left -= length;
+    node->value.offset = parser->tree->size;
+    parser->tree->size += length;
 }
 
 static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+    mpack_assert(node != NULL, "null node?");
 
     // read the type. we've already accounted for this byte in
     // possible_nodes_left, so we know it is in bounds and don't
     // need to subtract it.
-    uint8_t type = mpack_load_u8(parser->data);
-    parser->data += sizeof(uint8_t);
+    uint8_t type = mpack_load_u8(parser->tree->data + parser->tree->size);
+    parser->tree->size += sizeof(uint8_t);
 
     // as with mpack_read_tag(), the fastest way to parse a node is to switch
     // on the first byte, and to explicitly list every possible byte. we switch
@@ -3855,21 +4242,21 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         // fixmap
         case 0x8:
             node->type = mpack_type_map;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
         // fixarray
         case 0x9:
             node->type = mpack_type_array;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
         // fixstr
         case 0xa: case 0xb:
             node->type = mpack_type_str;
-            node->len = type & ~0xe0;
+            node->len = (uint32_t)(type & ~0xe0);
             mpack_tree_parse_bytes(parser, node);
             return;
 
@@ -3916,7 +4303,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
             node->type = mpack_type_map;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
@@ -3924,7 +4311,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
         case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
             node->type = mpack_type_array;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
@@ -3934,7 +4321,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
         case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
             node->type = mpack_type_str;
-            node->len = type & ~0xe0;
+            node->len = (uint32_t)(type & ~0xe0);
             mpack_tree_parse_bytes(parser, node);
             return;
         #endif
@@ -4188,29 +4575,94 @@ static void mpack_tree_parse_elements(mpack_tree_parser_t* parser) {
     }
 }
 
-static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length,
-        mpack_node_data_t* initial_nodes, size_t initial_nodes_count)
-{
+static void mpack_tree_cleanup(mpack_tree_t* tree) {
+    MPACK_UNUSED(tree);
+
+    #ifdef MPACK_MALLOC
+    mpack_tree_page_t* page = tree->next;
+    while (page != NULL) {
+        mpack_tree_page_t* next = page->next;
+        mpack_log("freeing page %p\n", page);
+        MPACK_FREE(page);
+        page = next;
+    }
+    tree->next = NULL;
+    #endif
+}
+
+static void mpack_tree_parser_setup(mpack_tree_parser_t* parser, mpack_tree_t* tree) {
+    mpack_memset(parser, 0, sizeof(*parser));
+    parser->tree = tree;
+    parser->possible_nodes_left = tree->data_length;
+
+    #ifdef MPACK_MALLOC
+    if (tree->pool == NULL) {
+
+        // allocate first page
+        mpack_tree_page_t* page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
+        mpack_log("allocated initial page %p of size %i count %i\n",
+                page, (int)MPACK_PAGE_ALLOC_SIZE, (int)MPACK_NODES_PER_PAGE);
+        if (page == NULL) {
+            tree->error = mpack_error_memory;
+            return;
+        }
+        page->next = NULL;
+        tree->next = page;
+
+        parser->nodes = page->nodes;
+        parser->nodes_left = MPACK_NODES_PER_PAGE;
+        tree->root = page->nodes;
+        return;
+    }
+    #endif
+
+    // otherwise use the provided pool
+    mpack_assert(tree->pool != NULL, "no pool provided?");
+    parser->nodes = tree->pool;
+    parser->nodes_left = tree->pool_count;
+}
+
+void mpack_tree_parse(mpack_tree_t* tree) {
+    if (mpack_tree_error(tree) != mpack_ok)
+        return;
+    tree->parsed = true;
+
+    mpack_tree_cleanup(tree);
+
     mpack_log("starting parse\n");
 
-    if (length == 0) {
-        mpack_tree_flag_error(tree, mpack_error_invalid);
-        return;
+    // check if we previously parsed a tree
+    if (tree->size > 0) {
+        #ifdef MPACK_MALLOC
+        // if we're buffered, move the remaining data back to the
+        // start of the buffer
+        // TODO: shrink buffer?
+        if (tree->buffer != NULL) {
+            mpack_memmove(tree->buffer, tree->buffer + tree->size, tree->data_length - tree->size);
+        }
+        else
+        #endif
+        // otherwise advance past the parsed data
+        {
+            tree->data += tree->size;
+        }
+        tree->data_length -= tree->size;
+        tree->size = 0;
     }
-    if (initial_nodes_count == 0) {
-        mpack_break("initial page has no nodes!");
-        mpack_tree_flag_error(tree, mpack_error_bug);
-        return;
-    }
-    tree->root = initial_nodes;
 
-    // Setup parser
+    // setup parser
     mpack_tree_parser_t parser;
-    mpack_memset(&parser, 0, sizeof(parser));
-    parser.tree = tree;
-    parser.data = data;
-    parser.nodes = initial_nodes + 1;
-    parser.nodes_left = initial_nodes_count - 1;
+    mpack_tree_parser_setup(&parser, tree);
+    if (mpack_tree_error(tree) != mpack_ok)
+        return;
+
+    // allocate the root node
+    if (!mpack_tree_reserve_bytes(&parser, sizeof(uint8_t)))
+        return;
+    tree->root = parser.nodes;
+    ++parser.nodes;
+    --parser.nodes_left;
+    tree->node_count = 1;
 
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
@@ -4228,12 +4680,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH]; // no VLAs in VS 2013
     parser.depth = MPACK_NODE_STACK_LOCAL_DEPTH;
     parser.stack = stack_local;
-    parser.possible_nodes_left = length;
     #undef MPACK_NODE_STACK_LOCAL_DEPTH
-
-    // configure the root node
-    --parser.possible_nodes_left;
-    tree->node_count = 1;
     parser.level = 0;
     parser.stack[0].child = tree->root;
     parser.stack[0].left = 1;
@@ -4245,12 +4692,10 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
         MPACK_FREE(parser.stack);
     #endif
 
-    // now that there are no longer any nodes to read, possible_nodes_left
-    // is the number of bytes left in the data.
-    if (mpack_tree_error(tree) == mpack_ok)
-        tree->size = length - parser.possible_nodes_left;
-    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
-    mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
+    if (mpack_tree_error(tree) == mpack_ok) {
+        mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
+        mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
+    }
 }
 
 
@@ -4260,12 +4705,28 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
  */
 
 mpack_node_t mpack_tree_root(mpack_tree_t* tree) {
-    return mpack_node(tree, (mpack_tree_error(tree) != mpack_ok) ? &tree->nil_node : tree->root);
+    if (mpack_tree_error(tree) != mpack_ok)
+        return mpack_tree_nil_node(tree);
+
+    // We check that mpack_tree_parse() was called at least once, and
+    // assert if not. This is to facilitate the transition to requiring
+    // a call to mpack_tree_parse(), since it used to be automatic on
+    // initialization.
+    if (!tree->parsed) {
+        mpack_break("Tree has not been parsed! You must call mpack_tree_parse()"
+                " after initialization before accessing the root node.");
+        mpack_tree_flag_error(tree, mpack_error_bug);
+        return mpack_tree_nil_node(tree);
+    }
+
+    return mpack_node(tree, tree->root);
 }
 
 static void mpack_tree_init_clear(mpack_tree_t* tree) {
     mpack_memset(tree, 0, sizeof(*tree));
     tree->nil_node.type = mpack_type_nil;
+    tree->max_size = SIZE_MAX;
+    tree->max_nodes = SIZE_MAX;
 }
 
 #ifdef MPACK_MALLOC
@@ -4278,21 +4739,14 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
     MPACK_STATIC_ASSERT(MPACK_PAGE_ALLOC_SIZE <= MPACK_NODE_PAGE_SIZE,
             "incorrect page rounding?");
 
-    // allocate first page
-    mpack_tree_page_t* page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
-    mpack_log("allocated initial page %p of size %i count %i\n",
-            page, (int)MPACK_PAGE_ALLOC_SIZE, (int)MPACK_NODES_PER_PAGE);
-    if (page == NULL) {
-        tree->error = mpack_error_memory;
-        return;
-    }
-    page->next = NULL;
-    tree->next = page;
+    tree->data = data;
+    tree->data_length = length;
+    tree->pool = NULL;
+    tree->pool_count = 0;
+    tree->next = NULL;
 
     mpack_log("===========================\n");
     mpack_log("initializing tree with data of size %i\n", (int)length);
-
-    mpack_tree_parse(tree, data, length, page->nodes, MPACK_NODES_PER_PAGE);
 }
 #endif
 
@@ -4304,10 +4758,20 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
     tree->next = NULL;
     #endif
 
-    mpack_log("===========================\n");
-    mpack_log("initializing tree with data of size %i and pool of count %i\n", (int)length, (int)node_pool_count);
+    if (node_pool_count == 0) {
+        mpack_break("initial page has no nodes!");
+        mpack_tree_flag_error(tree, mpack_error_bug);
+        return;
+    }
 
-    mpack_tree_parse(tree, data, length, node_pool, node_pool_count);
+    tree->data = data;
+    tree->data_length = length;
+    tree->pool = node_pool;
+    tree->pool_count = node_pool_count;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree with data of size %i and pool of count %i\n",
+            (int)length, (int)node_pool_count);
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
@@ -4317,6 +4781,22 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
     mpack_log("===========================\n");
     mpack_log("initializing tree error state %i\n", (int)error);
 }
+
+#ifdef MPACK_MALLOC
+void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void* context,
+        size_t max_message_size, size_t max_message_nodes) {
+    mpack_tree_init_clear(tree);
+
+    tree->read_fn = read_fn;
+    tree->context = context;
+    tree->max_size = max_message_size;
+    tree->max_nodes = max_message_nodes;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree with stream, max size %i max nodes %i\n",
+            (int)max_message_size, (int)max_message_nodes);
+}
+#endif
 
 #if MPACK_STDIO
 typedef struct mpack_file_tree_t {
@@ -4331,14 +4811,7 @@ static void mpack_file_tree_teardown(mpack_tree_t* tree) {
     MPACK_FREE(file_tree);
 }
 
-static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tree, const char* filename, size_t max_size) {
-
-    // open the file
-    FILE* file = fopen(filename, "rb");
-    if (!file) {
-        mpack_tree_init_error(tree, mpack_error_io);
-        return false;
-    }
+static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tree, FILE* file, size_t max_bytes) {
 
     // get the file size
     errno = 0;
@@ -4352,28 +4825,24 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
 
     // check for errors
     if (error != 0 || size < 0) {
-        fclose(file);
         mpack_tree_init_error(tree, mpack_error_io);
         return false;
     }
     if (size == 0) {
-        fclose(file);
         mpack_tree_init_error(tree, mpack_error_invalid);
         return false;
     }
 
-    // make sure the size is less than max_size
+    // make sure the size is less than max_bytes
     // (this mess exists to safely convert between long and size_t regardless of their widths)
-    if (max_size != 0 && (((uint64_t)LONG_MAX > (uint64_t)SIZE_MAX && size > (long)SIZE_MAX) || (size_t)size > max_size)) {
-        fclose(file);
+    if (max_bytes != 0 && (((uint64_t)LONG_MAX > (uint64_t)SIZE_MAX && size > (long)SIZE_MAX) || (size_t)size > max_bytes)) {
         mpack_tree_init_error(tree, mpack_error_too_big);
         return false;
     }
 
     // allocate data
-    file_tree->data = (char*)MPACK_MALLOC(size);
+    file_tree->data = (char*)MPACK_MALLOC((size_t)size);
     if (file_tree->data == NULL) {
-        fclose(file);
         mpack_tree_init_error(tree, mpack_error_memory);
         return false;
     }
@@ -4383,27 +4852,30 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     while (total < size) {
         size_t read = fread(file_tree->data + total, 1, (size_t)(size - total), file);
         if (read <= 0) {
-            fclose(file);
             mpack_tree_init_error(tree, mpack_error_io);
             MPACK_FREE(file_tree->data);
             return false;
         }
-        total += read;
+        total += (long)read;
     }
 
-    fclose(file);
     file_tree->size = (size_t)size;
     return true;
 }
 
-void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_size) {
+static bool mpack_tree_file_check_max_bytes(mpack_tree_t* tree, size_t max_bytes) {
 
     // the C STDIO family of file functions use long (e.g. ftell)
-    if (max_size > LONG_MAX) {
-        mpack_break("max_size of %" PRIu64 " is invalid, maximum is LONG_MAX", (uint64_t)max_size);
+    if (max_bytes > LONG_MAX) {
+        mpack_break("max_bytes of %" PRIu64 " is invalid, maximum is LONG_MAX", (uint64_t)max_bytes);
         mpack_tree_init_error(tree, mpack_error_bug);
-        return;
+        return false;
     }
+
+    return true;
+}
+
+static void mpack_tree_init_stdfile_noclose(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes) {
 
     // allocate file tree
     mpack_file_tree_t* file_tree = (mpack_file_tree_t*) MPACK_MALLOC(sizeof(mpack_file_tree_t));
@@ -4413,7 +4885,7 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
     }
 
     // read all data
-    if (!mpack_file_tree_read(tree, file_tree, filename, max_size)) {
+    if (!mpack_file_tree_read(tree, file_tree, stdfile, max_bytes)) {
         MPACK_FREE(file_tree);
         return;
     }
@@ -4422,17 +4894,38 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
     mpack_tree_set_context(tree, file_tree);
     mpack_tree_set_teardown(tree, mpack_file_tree_teardown);
 }
+
+void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes, bool close_when_done) {
+    if (!mpack_tree_file_check_max_bytes(tree, max_bytes))
+        return;
+
+    mpack_tree_init_stdfile_noclose(tree, stdfile, max_bytes);
+
+    if (close_when_done)
+        fclose(stdfile);
+}
+
+void mpack_tree_init_filename(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
+    if (!mpack_tree_file_check_max_bytes(tree, max_bytes))
+        return;
+
+    // open the file
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        mpack_tree_init_error(tree, mpack_error_io);
+        return;
+    }
+
+    mpack_tree_init_stdfile(tree, file, max_bytes, true);
+}
 #endif
 
 mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
+    mpack_tree_cleanup(tree);
+
     #ifdef MPACK_MALLOC
-    mpack_tree_page_t* page = tree->next;
-    while (page) {
-        mpack_tree_page_t* next = page->next;
-        mpack_log("freeing page %p\n", page);
-        MPACK_FREE(page);
-        page = next;
-    }
+    if (tree->buffer)
+        MPACK_FREE(tree->buffer);
     #endif
 
     if (tree->teardown)
@@ -4466,8 +4959,7 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tag_nil();
 
-    mpack_tag_t tag;
-    mpack_memset(&tag, 0, sizeof(tag));
+    mpack_tag_t tag = MPACK_TAG_ZERO;
 
     tag.type = node.data->type;
     switch (node.data->type) {
@@ -4482,9 +4974,8 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
         case mpack_type_bin:     tag.v.l = node.data->len;     break;
 
         case mpack_type_ext:
-            tag.v.l = node.data->len;
-            // the exttype of an ext node is stored in the byte preceding the data
-            tag.exttype = (int8_t)*(node.data->value.bytes - 1);
+            tag.v.ext.length = node.data->len;
+            tag.v.ext.exttype = mpack_node_exttype_unchecked(node);
             break;
 
         case mpack_type_array:   tag.v.n = node.data->len;  break;
@@ -4497,45 +4988,14 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
     return tag;
 }
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {
-
-        case mpack_type_nil:
-            fprintf(file, "null");
-            break;
-        case mpack_type_bool:
-            fprintf(file, data->value.b ? "true" : "false");
-            break;
-
-        case mpack_type_float:
-            fprintf(file, "%f", data->value.f);
-            break;
-        case mpack_type_double:
-            fprintf(file, "%f", data->value.d);
-            break;
-
-        case mpack_type_int:
-            fprintf(file, "%" PRIi64, data->value.i);
-            break;
-        case mpack_type_uint:
-            fprintf(file, "%" PRIu64, data->value.u);
-            break;
-
-        case mpack_type_bin:
-            fprintf(file, "<binary data of length %u>", data->len);
-            break;
-
-        case mpack_type_ext:
-            fprintf(file, "<ext data of type %i and length %u>",
-                    mpack_node_exttype(node), data->len);
-            break;
-
         case mpack_type_str:
             {
                 putc('"', file);
-                const char* bytes = mpack_node_data(node);
+                const char* bytes = mpack_node_data_unchecked(node);
                 for (size_t i = 0; i < data->len; ++i) {
                     char c = bytes[i];
                     switch (c) {
@@ -4580,13 +5040,22 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
                 fprintf(file, "    ");
             putc('}', file);
             break;
+
+        default:
+            {
+                char buf[256];
+                mpack_tag_t tag = mpack_node_tag(node);
+                mpack_tag_debug_pseudo_json(tag, buf, sizeof(buf));
+                fputs(buf, file);
+            }
+            break;
     }
 }
 
 void mpack_node_print_file(mpack_node_t node, FILE* file) {
     mpack_assert(file != NULL, "file is NULL");
-    int depth = 2;
-    for (int i = 0; i < depth; ++i)
+    size_t depth = 2;
+    for (size_t i = 0; i < depth; ++i)
         fprintf(file, "    ");
     mpack_node_print_element(node, depth, file);
     putc('\n', file);
@@ -4603,7 +5072,7 @@ void mpack_node_check_utf8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     mpack_node_data_t* data = node.data;
-    if (data->type != mpack_type_str || !mpack_utf8_check(data->value.bytes, data->len))
+    if (data->type != mpack_type_str || !mpack_utf8_check(mpack_node_data_unchecked(node), data->len))
         mpack_node_flag_error(node, mpack_error_type);
 }
 
@@ -4611,7 +5080,7 @@ void mpack_node_check_utf8_cstr(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     mpack_node_data_t* data = node.data;
-    if (data->type != mpack_type_str || !mpack_utf8_check_no_null(data->value.bytes, data->len))
+    if (data->type != mpack_type_str || !mpack_utf8_check_no_null(mpack_node_data_unchecked(node), data->len))
         mpack_node_flag_error(node, mpack_error_type);
 }
 
@@ -4632,7 +5101,7 @@ size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize) {
         return 0;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     return (size_t)node.data->len;
 }
 
@@ -4653,12 +5122,12 @@ size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize) {
         return 0;
     }
 
-    if (!mpack_utf8_check(node.data->value.bytes, node.data->len)) {
+    if (!mpack_utf8_check(mpack_node_data_unchecked(node), node.data->len)) {
         mpack_node_flag_error(node, mpack_error_type);
         return 0;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     return (size_t)node.data->len;
 }
 
@@ -4686,13 +5155,13 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
         return;
     }
 
-    if (!mpack_str_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_str_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         buffer[0] = '\0';
         mpack_node_flag_error(node, mpack_error_type);
         return;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     buffer[node.data->len] = '\0';
 }
 
@@ -4720,13 +5189,13 @@ void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t bufsize) 
         return;
     }
 
-    if (!mpack_utf8_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_utf8_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         buffer[0] = '\0';
         mpack_node_flag_error(node, mpack_error_type);
         return;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     buffer[node.data->len] = '\0';
 }
 
@@ -4753,7 +5222,7 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    mpack_memcpy(ret, mpack_node_data_unchecked(node), node.data->len);
     return ret;
 }
 
@@ -4778,7 +5247,7 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    if (!mpack_str_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_str_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         mpack_node_flag_error(node, mpack_error_type);
         return NULL;
     }
@@ -4789,7 +5258,7 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    mpack_memcpy(ret, mpack_node_data_unchecked(node), node.data->len);
     ret[node.data->len] = '\0';
     return ret;
 }
@@ -4815,7 +5284,7 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    if (!mpack_utf8_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_utf8_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         mpack_node_flag_error(node, mpack_error_type);
         return NULL;
     }
@@ -4826,7 +5295,7 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    mpack_memcpy(ret, mpack_node_data_unchecked(node), node.data->len);
     ret[node.data->len] = '\0';
     return ret;
 }
@@ -4910,12 +5379,14 @@ static mpack_node_data_t* mpack_node_map_str_impl(mpack_node_t node, const char*
         return NULL;
     }
 
+    mpack_tree_t* tree = node.tree;
     mpack_node_data_t* found = NULL;
 
     for (size_t i = 0; i < node.data->len; ++i) {
         mpack_node_data_t* key = mpack_node_child(node, i * 2);
 
-        if (key->type == mpack_type_str && key->len == length && mpack_memcmp(str, key->value.bytes, length) == 0) {
+        if (key->type == mpack_type_str && key->len == length &&
+                mpack_memcmp(str, mpack_node_data_unchecked(mpack_node(tree, key)), length) == 0) {
             if (found) {
                 mpack_node_flag_error(node, mpack_error_data);
                 return NULL;

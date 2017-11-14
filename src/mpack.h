@@ -24,7 +24,7 @@
  */
 
 /*
- * This is the MPack 0.8.2 amalgamation package.
+ * This is the MPack 0.9 amalgamation package.
  *
  * http://github.com/ludocode/mpack
  */
@@ -33,12 +33,381 @@
 #define MPACK_H 1
 
 #define MPACK_AMALGAMATED 1
-#define MPACK_RELEASE_VERSION 1
 
+#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
 #include "mpack-config.h"
+#endif
 
 
-/* mpack-platform.h */
+/* mpack-config.h.sample.h */
+
+/** @file */
+
+/**
+ * @defgroup config Configuration Options
+ *
+ * Defines the MPack configuration options. You can configure MPack by
+ * pre-defining any of the below options in your build system or project
+ * settings.
+ *
+ * Custom configuration of MPack is not usually necessary. In almost all
+ * cases you can ignore this and use the defaults.
+ *
+ * If you'd like to use a file for configuration instead, define
+ * @ref MPACK_HAS_CONFIG to 1 in your build system or project settings.
+ * You can then copy @c mpack-config.h.sample to @c mpack-config.h, or
+ * create a blank file and set only the options you want. The below
+ * settings are the defaults if they are not set by your configuration
+ * file.
+ *
+ * @warning The value of all configuration options must be the same in
+ * all translation units of your project, as well as @c mpack.c itself.
+ * These configuration options affect the layout of structs, among other
+ * things, which cannot be different in source files that are linked
+ * together.
+ *
+ * @{
+ */
+
+
+/**
+ * @name Features
+ * @{
+ */
+
+/**
+ * @def MPACK_READER
+ *
+ * Enables compilation of the base Tag Reader.
+ */
+#ifndef MPACK_READER
+#define MPACK_READER 1
+#endif
+
+/**
+ * @def MPACK_EXPECT
+ *
+ * Enables compilation of the static Expect API.
+ */
+#ifndef MPACK_EXPECT
+#define MPACK_EXPECT 1
+#endif
+
+/**
+ * @def MPACK_NODE
+ *
+ * Enables compilation of the dynamic Node API.
+ */
+#ifndef MPACK_NODE
+#define MPACK_NODE 1
+#endif
+
+/**
+ * @def MPACK_WRITER
+ *
+ * Enables compilation of the Writer.
+ */
+#ifndef MPACK_WRITER
+#define MPACK_WRITER 1
+#endif
+
+/**
+ * @def MPACK_COMPATIBILITY
+ *
+ * Enables compatibility features for reading and writing older
+ * versions of MessagePack.
+ *
+ * This is on by default if it is not defined. It can be disabled to
+ * minimize library size on embedded devices. If disabled, the behaviour
+ * is equivalent to using the default version, @ref mpack_version_current.
+ */
+#ifndef MPACK_COMPATIBILITY
+#define MPACK_COMPATIBILITY 1
+#endif
+
+/**
+ * @}
+ */
+
+
+/**
+ * @name Dependencies
+ * @{
+ */
+
+/**
+ * @def MPACK_HAS_CONFIG
+ *
+ * Enables the use of an @c mpack-config.h configuration file for MPack.
+ * This file must be in the same folder as @c mpack.h, or it must be
+ * available from your project's include paths.
+ */
+// This goes in your project settings.
+
+/**
+ * @def MPACK_STDLIB
+ *
+ * Enables the use of C stdlib. This allows the library to use malloc
+ * for debugging and in allocation helpers.
+ */
+#ifndef MPACK_STDLIB
+#define MPACK_STDLIB 1
+#endif
+
+/**
+ * @def MPACK_STDIO
+ *
+ * Enables the use of C stdio. This adds helpers for easily
+ * reading/writing C files and makes debugging easier.
+ */
+#ifndef MPACK_STDIO
+#define MPACK_STDIO 1
+#endif
+
+/**
+ * @}
+ */
+
+
+/**
+ * @name System Functions
+ * @{
+ */
+
+/**
+ * @def MPACK_MALLOC
+ *
+ * Defines the memory allocation function used by MPack. This is used by
+ * helpers for automatically allocating data the correct size, and for
+ * debugging functions. If this macro is undefined, the allocation helpers
+ * will not be compiled.
+ *
+ * The default is @c malloc() if @ref MPACK_STDLIB is enabled.
+ */
+/**
+ * @def MPACK_FREE
+ *
+ * Defines the memory free function used by MPack. This is used by helpers
+ * for automatically allocating data the correct size. If this macro is
+ * undefined, the allocation helpers will not be compiled.
+ *
+ * The default is @c free() if @ref MPACK_MALLOC has not been customized and
+ * @ref MPACK_STDLIB is enabled.
+ */
+/**
+ * @def MPACK_REALLOC
+ *
+ * Defines the realloc function used by MPack. It is used by growable
+ * buffers to resize more efficiently.
+ *
+ * The default is @c realloc() if @ref MPACK_MALLOC has not been customized and
+ * @ref MPACK_STDLIB is enabled.
+ *
+ * This is optional, even when @ref MPACK_MALLOC is used. If @ref MPACK_MALLOC is
+ * set and @ref MPACK_REALLOC is not, @ref MPACK_MALLOC is used with a simple copy
+ * to grow buffers.
+ */
+#if defined(MPACK_STDLIB) && MPACK_STDLIB && !defined(MPACK_MALLOC)
+#define MPACK_MALLOC malloc
+#define MPACK_REALLOC realloc
+#define MPACK_FREE free
+#endif
+
+/**
+ * @}
+ */
+
+
+/**
+ * @name Debugging Options
+ */
+
+/**
+ * @def MPACK_DEBUG
+ *
+ * Enables debug features. You may want to wrap this around your
+ * own debug preprocs. By default, this is enabled if @c DEBUG or @c _DEBUG
+ * are defined. (@c NDEBUG is not used since it is allowed to have
+ * different values in different translation units.)
+ */
+#if !defined(MPACK_DEBUG) && (defined(DEBUG) || defined(_DEBUG))
+#define MPACK_DEBUG 1
+#endif
+
+/**
+ * @def MPACK_STRINGS
+ *
+ * Enables descriptive error and type strings.
+ *
+ * This can be turned off (by defining it to 0) to maximize space savings
+ * on embedded devices. If this is disabled, string functions such as
+ * mpack_error_to_string() and mpack_type_to_string() return an empty string.
+ */
+#ifndef MPACK_STRINGS
+#define MPACK_STRINGS 1
+#endif
+
+/**
+ * Set this to 1 to implement a custom @ref mpack_assert_fail() function.
+ * See the documentation on @ref mpack_assert_fail() for details.
+ *
+ * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
+ * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
+ */
+#ifndef MPACK_CUSTOM_ASSERT
+#define MPACK_CUSTOM_ASSERT 0
+#endif
+
+/**
+ * @def MPACK_READ_TRACKING
+ *
+ * Enables compound type size tracking for readers. This ensures that the
+ * correct number of elements or bytes are read from a compound type.
+ *
+ * This is enabled by default in debug builds (provided a @c malloc() is
+ * available.)
+ */
+#if !defined(MPACK_READ_TRACKING) && \
+        defined(MPACK_DEBUG) && MPACK_DEBUG && \
+        defined(MPACK_READER) && MPACK_READER && \
+        defined(MPACK_MALLOC)
+#define MPACK_READ_TRACKING 1
+#endif
+
+/**
+ * @def MPACK_WRITE_TRACKING
+ *
+ * Enables compound type size tracking for writers. This ensures that the
+ * correct number of elements or bytes are written in a compound type.
+ *
+ * Note that without write tracking enabled, it is possible for buggy code
+ * to emit invalid MessagePack without flagging an error by writing the wrong
+ * number of elements or bytes in a compound type. With tracking enabled,
+ * MPack will catch such errors and break on the offending line of code.
+ *
+ * This is enabled by default in debug builds (provided a @c malloc() is
+ * available.)
+ */
+#if !defined(MPACK_WRITE_TRACKING) && \
+        defined(MPACK_DEBUG) && MPACK_DEBUG && \
+        defined(MPACK_WRITER) && MPACK_WRITER && \
+        defined(MPACK_MALLOC)
+#define MPACK_WRITE_TRACKING 1
+#endif
+
+/**
+ * @}
+ */
+
+
+/**
+ * @name Miscellaneous Options
+ * @{
+ */
+
+/**
+ * Whether to optimize for size or speed.
+ *
+ * Optimizing for size simplifies some parsing and encoding algorithms
+ * at the expense of speed, and saves a few kilobytes of space in the
+ * resulting executable.
+ *
+ * This automatically detects -Os with GCC/Clang. Unfortunately there
+ * doesn't seem to be a macro defined for /Os under MSVC.
+ */
+#ifndef MPACK_OPTIMIZE_FOR_SIZE
+#ifdef __OPTIMIZE_SIZE__
+#define MPACK_OPTIMIZE_FOR_SIZE 1
+#else
+#define MPACK_OPTIMIZE_FOR_SIZE 0
+#endif
+#endif
+
+/**
+ * Stack space in bytes to use when initializing a reader or writer
+ * with a stack-allocated buffer.
+ */
+#ifndef MPACK_STACK_SIZE
+#define MPACK_STACK_SIZE 4096
+#endif
+
+/**
+ * Buffer size to use for allocated buffers (such as for a file writer.)
+ *
+ * Starting with a single page and growing as needed seems to
+ * provide the best performance with minimal memory waste.
+ * Increasing this does not improve performance even when writing
+ * huge messages.
+ */
+#ifndef MPACK_BUFFER_SIZE
+#define MPACK_BUFFER_SIZE 4096
+#endif
+
+/**
+ * Minimum size of an allocated node page in bytes.
+ *
+ * The children for a given compound element must be contiguous, so
+ * larger pages than this may be allocated as needed. (Safety checks
+ * exist to prevent malicious data from causing too large allocations.)
+ *
+ * See @ref mpack_node_data_t for the size of nodes.
+ *
+ * Using as many nodes fit in one memory page seems to provide the
+ * best performance, and has very little waste when parsing small
+ * messages.
+ */
+#ifndef MPACK_NODE_PAGE_SIZE
+#define MPACK_NODE_PAGE_SIZE 4096
+#endif
+
+/**
+ * The initial depth for the node parser. When MPACK_MALLOC is available,
+ * the node parser has no practical depth limit, and it is not recursive
+ * so there is no risk of overflowing the call stack.
+ */
+#ifndef MPACK_NODE_INITIAL_DEPTH
+#define MPACK_NODE_INITIAL_DEPTH 8
+#endif
+
+/**
+ * The maximum depth for the node parser if @ref MPACK_MALLOC is not available.
+ * The parsing stack is placed on the call stack.
+ */
+#ifndef MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
+#define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
+#endif
+
+/**
+ * @}
+ */
+
+
+/**
+ * @}
+ */
+
+
+/* mpack/mpack-platform.h.h */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * @file
@@ -65,62 +434,42 @@
 
 
 
+/* Include the custom config file if enabled */
+
+#ifdef MPACK_DOXYGEN
+#define MPACK_HAS_CONFIG 1
+#elif defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
 /* #include "mpack-config.h" */
-
-
+#endif
 
 /*
- * Now that the config is included, we define to 0 any of the configuration
- * options and other switches that aren't defined. This supports -Wundef
- * without us having to write "#if defined(X) && X" everywhere (and while
- * allowing configs to be pre-defined to 0.)
+ * Now that the optional config is included, we define the defaults
+ * for any of the configuration options and other switches that aren't
+ * yet defined.
+ *
+ * In development mode, or when the library is used without being
+ * amalgamated, we set the defaults by including the sample config
+ * directly. When amalgamated, this is disabled and the contents
+ * of the sample config have been inserted into the top of mpack.h.
  */
-#ifndef MPACK_READER
-#define MPACK_READER 0
-#endif
-#ifndef MPACK_EXPECT
-#define MPACK_EXPECT 0
-#endif
-#ifndef MPACK_NODE
-#define MPACK_NODE 0
-#endif
-#ifndef MPACK_WRITER
-#define MPACK_WRITER 0
-#endif
+/* #include "mpack-config.h.sample" */
 
-#ifndef MPACK_STDLIB
-#define MPACK_STDLIB 0
-#endif
-#ifndef MPACK_STDIO
-#define MPACK_STDIO 0
-#endif
-
+/*
+ * All remaining configuration options that have not yet been set must
+ * be defined here in order to support -Wundef.
+ */
 #ifndef MPACK_DEBUG
 #define MPACK_DEBUG 0
-#endif
-#ifndef MPACK_STRINGS
-#define MPACK_STRINGS 1 /* default on unless explicitly disabled */
-#endif
-#ifndef MPACK_CUSTOM_ASSERT
-#define MPACK_CUSTOM_ASSERT 0
 #endif
 #ifndef MPACK_CUSTOM_BREAK
 #define MPACK_CUSTOM_BREAK 0
 #endif
-
 #ifndef MPACK_READ_TRACKING
 #define MPACK_READ_TRACKING 0
 #endif
 #ifndef MPACK_WRITE_TRACKING
 #define MPACK_WRITE_TRACKING 0
 #endif
-#ifndef MPACK_NO_TRACKING
-#define MPACK_NO_TRACKING 0
-#endif
-#ifndef MPACK_OPTIMIZE_FOR_SIZE
-#define MPACK_OPTIMIZE_FOR_SIZE 0
-#endif
-
 #ifndef MPACK_EMIT_INLINE_DEFS
 #define MPACK_EMIT_INLINE_DEFS 0
 #endif
@@ -319,6 +668,28 @@ MPACK_HEADER_START
 
 
 
+/*
+ * Prevent inlining
+ *
+ * When a function is only used once, it is almost always inlined
+ * automatically. This can cause poor instruction cache usage because a
+ * function that should rarely be called (such as buffer exhaustion handling)
+ * will get inlined into the middle of a hot code path.
+ */
+
+#if !MPACK_NO_BUILTINS
+    #if defined(_MSC_VER)
+        #define MPACK_NOINLINE __declspec(noinline)
+    #elif defined(__GNUC__) || defined(__clang__)
+        #define MPACK_NOINLINE __attribute__((noinline))
+    #endif
+#endif
+#ifndef MPACK_NOINLINE
+    #define MPACK_NOINLINE /* nothing */
+#endif
+
+
+
 /* Some compiler-specific keywords and builtins */
 
 #if !MPACK_NO_BUILTINS
@@ -346,6 +717,34 @@ MPACK_HEADER_START
 #endif
 #ifndef MPACK_NORETURN
 #define MPACK_NORETURN(fn) fn
+#endif
+
+
+
+/*
+ * Likely/unlikely
+ *
+ * These should only really be used when a branch is taken (or not taken) less
+ * than 1/1000th of the time. Buffer flush checks when writing very small
+ * elements are a good example.
+ */
+
+#if !MPACK_NO_BUILTINS
+    #if defined(__GNUC__) || defined(__clang__)
+        #ifndef MPACK_LIKELY
+            #define MPACK_LIKELY(x) __builtin_expect((x),1)
+        #endif
+        #ifndef MPACK_UNLIKELY
+            #define MPACK_UNLIKELY(x) __builtin_expect((x),0)
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_LIKELY
+    #define MPACK_LIKELY(x) (x)
+#endif
+#ifndef MPACK_UNLIKELY
+    #define MPACK_UNLIKELY(x) (x)
 #endif
 
 
@@ -597,14 +996,42 @@ MPACK_HEADER_START
  */
 
 #if MPACK_DEBUG
-    MPACK_NORETURN(void mpack_assert_fail(const char* message));
+
+    /**
+     * @addtogroup config
+     * @{
+     */
+    /**
+     * @name Debug Functions
+     */
+    /**
+     * Implement this and define @ref MPACK_CUSTOM_ASSERT to use a custom
+     * assertion function.
+     *
+     * This function should not return. If it does, MPack will @c abort().
+     *
+     * If you use C++, make sure you include @c mpack.h where you define
+     * this to get the correct linkage (or define it <code>extern "C"</code>.)
+     *
+     * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
+     * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
+     */
+    void mpack_assert_fail(const char* message);
+    /**
+     * @}
+     */
+    /**
+     * @}
+     */
+
+    MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
     #if MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
     #else
         #define mpack_assert_fail_at(line, file, ...) \
-                mpack_assert_fail("mpack assertion failed at " file ":" #line )
+                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line )
     #endif
 
     #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
@@ -635,7 +1062,9 @@ MPACK_HEADER_START
     #define mpack_memcpy memcpy
     #define mpack_memmove memmove
     #define mpack_memset memset
-    #define mpack_strlen strlen
+    #ifndef mpack_strlen
+        #define mpack_strlen strlen
+    #endif
 
     #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
         // make sure we don't use the stdlib directly during development
@@ -697,11 +1126,19 @@ void* mpack_memset(void* s, int c, size_t n);
 size_t mpack_strlen(const char* s);
 #endif
 
+#if MPACK_STDIO
+    #if defined(WIN32)
+        #define mpack_snprintf _snprintf
+    #else
+        #define mpack_snprintf snprintf
+    #endif
+#endif
+
 
 
 /* Debug logging */
 #if 0
-    #define mpack_log(...) printf(__VA_ARGS__);
+    #define mpack_log(...) (printf(__VA_ARGS__), fflush(stdout))
 #else
     #define mpack_log(...) ((void)0)
 #endif
@@ -758,7 +1195,27 @@ MPACK_HEADER_END
 #endif
 
 
-/* mpack-common.h */
+/* mpack/mpack-common.h.h */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * @file
@@ -787,8 +1244,8 @@ MPACK_HEADER_START
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
-#define MPACK_VERSION_MINOR 8  /**< The minor version number of MPack. */
-#define MPACK_VERSION_PATCH 2  /**< The patch version number of MPack. */
+#define MPACK_VERSION_MINOR 9  /**< The minor version number of MPack. */
+#define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
 #define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
@@ -846,6 +1303,36 @@ MPACK_HEADER_START
 
 
 
+#if MPACK_COMPATIBILITY
+/**
+ * Versions of the MessagePack format.
+ *
+ * A reader, writer, or tree can be configured to serialize in an older
+ * version of the MessagePack spec. This is necessary to interface with
+ * older MessagePack libraries that do not support new MessagePack features.
+ *
+ * This requires @ref MPACK_COMPATIBILITY.
+ */
+typedef enum mpack_version_t {
+
+    /**
+     * Version 1.0/v4, supporting only the @c raw type without @c str8.
+     */
+    mpack_version_v4 = 4,
+
+    /**
+     * Version 2.0/v5, supporting the @c str8, @c bin and @c ext types.
+     */
+    mpack_version_v5 = 5,
+
+    /**
+     * The most recent supported version of MessagePack. This is the default.
+     */
+    mpack_version_current = mpack_version_v5,
+
+} mpack_version_t;
+#endif
+
 /**
  * Error states for MPack objects.
  *
@@ -862,6 +1349,7 @@ typedef enum mpack_error_t {
     mpack_error_memory,  /**< An allocation failure occurred. */
     mpack_error_bug,     /**< The MPack API was used incorrectly. (This will always assert in debug mode.) */
     mpack_error_data,    /**< The contained data is not valid. */
+    mpack_error_eof,     /**< The reader failed to read because of file or socket EOF */
 } mpack_error_t;
 
 /**
@@ -876,10 +1364,10 @@ const char* mpack_error_to_string(mpack_error_t error);
 typedef enum mpack_type_t {
     mpack_type_nil = 1, /**< A null value. */
     mpack_type_bool,    /**< A boolean (true or false.) */
-    mpack_type_float,   /**< A 32-bit IEEE 754 floating point number. */
-    mpack_type_double,  /**< A 64-bit IEEE 754 floating point number. */
     mpack_type_int,     /**< A 64-bit signed integer. */
     mpack_type_uint,    /**< A 64-bit unsigned integer. */
+    mpack_type_float,   /**< A 32-bit IEEE 754 floating point number. */
+    mpack_type_double,  /**< A 64-bit IEEE 754 floating point number. */
     mpack_type_str,     /**< A string. */
     mpack_type_bin,     /**< A chunk of binary data. */
     mpack_type_ext,     /**< A typed MessagePack extension object containing a chunk of binary data. */
@@ -900,144 +1388,302 @@ const char* mpack_type_to_string(mpack_type_t type);
  *
  * If the type is compound (str, bin, ext, array or map), the embedded data is
  * stored separately.
+ *
+ * This structure is opaque; its fields should not be accessed outside
+ * of MPack.
  */
-typedef struct mpack_tag_t {
-    mpack_type_t type; /**< The type of value. */
+typedef struct mpack_tag_t mpack_tag_t;
 
-    int8_t exttype; /**< The extension type if the type is @ref mpack_type_ext. */
-
-    /** The value for non-compound types. */
+/* Hide internals from documentation */
+/** @cond */
+struct mpack_tag_t {
+    /* The value for non-compound types. */
     union
     {
-        bool     b; /**< The value if the type is bool. */
-        float    f; /**< The value if the type is float. */
-        double   d; /**< The value if the type is double. */
-        int64_t  i; /**< The value if the type is signed int. */
-        uint64_t u; /**< The value if the type is unsigned int. */
-        uint32_t l; /**< The number of bytes if the type is str, bin or ext. */
+        uint64_t u; /*< The value if the type is unsigned int. */
+        int64_t  i; /*< The value if the type is signed int. */
+        double   d; /*< The value if the type is double. */
+        float    f; /*< The value if the type is float. */
+        bool     b; /*< The value if the type is bool. */
 
-        /** The element count if the type is an array, or the number of
+        /* The number of bytes if the type is a str or bin. */
+        uint32_t l;
+
+        /* The element count if the type is an array, or the number of
             key/value pairs if the type is map. */
         uint32_t n;
+
+        /*
+         * The extension data if the type is @ref mpack_type_ext.
+         */
+        struct {
+            int8_t exttype; /*< The extension type. */
+            uint32_t length; /*< The number of bytes. */
+        } ext;
     } v;
-} mpack_tag_t;
+
+    /* The type of value. */
+    mpack_type_t type;
+};
+/** @endcond */
+
+/**
+ * @name Tag Generators
+ * @{
+ */
+
+/**
+ * An @ref mpack_tag_t initializer that zeroes the given tag.
+ *
+ * This does not make the tag nil! The tag's type is invalid when initialized this way.
+ */
+#define MPACK_TAG_ZERO {{0}, (mpack_type_t)0}
 
 /** Generates a nil tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_nil(void) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_nil;
     return ret;
 }
 
 /** Generates a bool tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_bool(bool value) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bool;
     ret.v.b = value;
     return ret;
 }
 
 /** Generates a bool tag with value true. */
-MPACK_INLINE mpack_tag_t mpack_tag_true(void) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_true(void) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bool;
     ret.v.b = true;
     return ret;
 }
 
 /** Generates a bool tag with value false. */
-MPACK_INLINE mpack_tag_t mpack_tag_false(void) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_false(void) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bool;
     ret.v.b = false;
     return ret;
 }
 
 /** Generates a signed int tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_int(int64_t value) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_int;
     ret.v.i = value;
     return ret;
 }
 
 /** Generates an unsigned int tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_uint(uint64_t value) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_uint;
     ret.v.u = value;
     return ret;
 }
 
 /** Generates a float tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_float(float value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_float(float value) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_float;
     ret.v.f = value;
     return ret;
 }
 
 /** Generates a double tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_double(double value) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_double;
     ret.v.d = value;
     return ret;
 }
 
 /** Generates an array tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_array(uint32_t count) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_array;
     ret.v.n = count;
     return ret;
 }
 
 /** Generates a map tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_map(uint32_t count) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_map;
     ret.v.n = count;
     return ret;
 }
 
 /** Generates a str tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_str(uint32_t length) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_str;
     ret.v.l = length;
     return ret;
 }
 
 /** Generates a bin tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_bin(uint32_t length) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bin;
     ret.v.l = length;
     return ret;
 }
 
 /** Generates an ext tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+MPACK_INLINE mpack_tag_t mpack_tag_make_ext(int8_t exttype, uint32_t length) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_ext;
-    ret.exttype = exttype;
-    ret.v.l = length;
+    ret.v.ext.exttype = exttype;
+    ret.v.ext.length = length;
     return ret;
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @name Tag Querying Functions
+ * @{
+ */
+
+/**
+ * Gets the type of a tag.
+ */
+MPACK_INLINE mpack_type_t mpack_tag_type(mpack_tag_t* tag) {
+    return tag->type;
+}
+
+/**
+ * Gets the boolean value of a bool-type tag. The tag must be of type @ref
+ * mpack_type_bool.
+ */
+MPACK_INLINE bool mpack_tag_bool_value(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_bool, "tag is not a bool!");
+    return tag->v.b;
+}
+
+/**
+ * Gets the signed integer value of an int-type tag.
+ *
+ * This does not convert between signed and unsigned tags! A positive integer may be stored in a tag as either @ref mpack_type_int or @ref mpack_type_uint. You must check the type first; this can only be used if the type is @ref mpack_type_int.
+ *
+ * @see mpack_type_int
+ */
+MPACK_INLINE int64_t mpack_tag_int_value(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_int, "tag is not an int!");
+    return tag->v.i;
+}
+
+/**
+ * Gets the unsigned integer value of an uint-type tag.
+ *
+ * This does not convert between signed and unsigned tags! A positive integer may be stored in a tag as either @ref mpack_type_int or @ref mpack_type_uint. You must check the type first; this can only be used if the type is @ref mpack_type_uint.
+ *
+ * @see mpack_type_uint
+ */
+MPACK_INLINE uint64_t mpack_tag_uint_value(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_uint, "tag is not a uint!");
+    return tag->v.u;
+}
+
+/**
+ * Gets the float value of a float-type tag.
+ *
+ * This does not convert between float and double tags. This can only be used if the type is @ref mpack_type_float.
+ *
+ * @see mpack_type_float
+ */
+MPACK_INLINE float mpack_tag_float_value(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_float, "tag is not a float!");
+    return tag->v.f;
+}
+
+/**
+ * Gets the double value of a double-type tag.
+ *
+ * This does not convert between float and double tags. This can only be used if the type is @ref mpack_type_double.
+ *
+ * @see mpack_type_double
+ */
+MPACK_INLINE double mpack_tag_double_value(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_double, "tag is not a double!");
+    return tag->v.d;
+}
+
+/**
+ * Gets the number of elements in an array tag.
+ *
+ * @see mpack_type_array
+ */
+MPACK_INLINE uint32_t mpack_tag_array_count(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_array, "tag is not an array!");
+    return tag->v.n;
+}
+
+/**
+ * Gets the number of key-value pairs in a map tag.
+ *
+ * @see mpack_type_map
+ */
+MPACK_INLINE uint32_t mpack_tag_map_count(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_map, "tag is not a map!");
+    return tag->v.n;
+}
+
+/**
+ * Gets the length in bytes of a str-type tag.
+ *
+ * @see mpack_type_str
+ */
+MPACK_INLINE uint32_t mpack_tag_str_length(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_str, "tag is not a str!");
+    return tag->v.l;
+}
+
+/**
+ * Gets the length in bytes of a bin-type tag.
+ *
+ * @see mpack_type_bin
+ */
+MPACK_INLINE uint32_t mpack_tag_bin_length(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_bin, "tag is not a bin!");
+    return tag->v.l;
+}
+
+/**
+ * Gets the length in bytes of an ext-type tag.
+ *
+ * @see mpack_type_ext
+ */
+MPACK_INLINE uint32_t mpack_tag_ext_length(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_ext, "tag is not an ext!");
+    return tag->v.ext.length;
+}
+
+/**
+ * Gets the extension type (exttype) of an ext-type tag.
+ *
+ * @see mpack_type_ext
+ */
+MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_ext, "tag is not an ext!");
+    return tag->v.ext.exttype;
+}
+
+/**
+ * @}
+ */
+
+/**
+ * @name other tag functions
+ * @{
+ */
 
 /**
  * Compares two tags with an arbitrary fixed ordering. Returns 0 if the tags are
@@ -1075,11 +1721,111 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
     return mpack_tag_cmp(left, right) == 0;
 }
 
+#if MPACK_DEBUG && MPACK_STDIO
+/**
+ * Generates a json-like debug description of the given tag into the given buffer.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size);
+
+/**
+ * Generates a debug string description of the given tag into the given buffer.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size);
+#endif
+
 /**
  * @}
  */
 
+/**
+ * @name Deprecated Tag Generators
+ * @{
+ */
 
+/*
+ * "make" has been added to their names to disambiguate them from the
+ * value-fetching functions (e.g. mpack_tag_make_bool() vs
+ * mpack_tag_bool_value().)
+ *
+ * The length and count for all compound types was the wrong sign (int32_t
+ * instead of uint32_t.) These preserve the old behaviour; the new "make"
+ * functions have the correct sign.
+ */
+
+/** \deprecated Renamed to mpack_tag_make_nil(). */
+MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
+    return mpack_tag_make_nil();
+}
+
+/** \deprecated Renamed to mpack_tag_make_bool(). */
+MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
+    return mpack_tag_make_bool(value);
+}
+
+/** \deprecated Renamed to mpack_tag_make_true(). */
+MPACK_INLINE mpack_tag_t mpack_tag_true(void) {
+    return mpack_tag_make_true();
+}
+
+/** \deprecated Renamed to mpack_tag_make_false(). */
+MPACK_INLINE mpack_tag_t mpack_tag_false(void) {
+    return mpack_tag_make_false();
+}
+
+/** \deprecated Renamed to mpack_tag_make_int(). */
+MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
+    return mpack_tag_make_int(value);
+}
+
+/** \deprecated Renamed to mpack_tag_make_uint(). */
+MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
+    return mpack_tag_make_uint(value);
+}
+
+/** \deprecated Renamed to mpack_tag_make_float(). */
+MPACK_INLINE mpack_tag_t mpack_tag_float(float value) {
+    return mpack_tag_make_float(value);
+}
+
+/** \deprecated Renamed to mpack_tag_make_double(). */
+MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
+    return mpack_tag_make_double(value);
+}
+
+/** \deprecated Renamed to mpack_tag_make_array(). */
+MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
+    return mpack_tag_make_array((uint32_t)count);
+}
+
+/** \deprecated Renamed to mpack_tag_make_map(). */
+MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
+    return mpack_tag_make_map((uint32_t)count);
+}
+
+/** \deprecated Renamed to mpack_tag_make_str(). */
+MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
+    return mpack_tag_make_str((uint32_t)length);
+}
+
+/** \deprecated Renamed to mpack_tag_make_bin(). */
+MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
+    return mpack_tag_make_bin((uint32_t)length);
+}
+
+/** \deprecated Renamed to mpack_tag_make_ext(). */
+MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
+    return mpack_tag_make_ext(exttype, (uint32_t)length);
+}
+
+/**
+ * @}
+ */
 
 /** @cond */
 
@@ -1345,7 +2091,27 @@ MPACK_HEADER_END
 #endif
 
 
-/* mpack-writer.h */
+/* mpack/mpack-writer.h.h */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * @file
@@ -1436,14 +2202,17 @@ typedef void (*mpack_writer_teardown_t)(mpack_writer_t* writer);
 /** @cond */
 
 struct mpack_writer_t {
+    #if MPACK_COMPATIBILITY
+    mpack_version_t version;          /* Version of the MessagePack spec to write */
+    #endif
     mpack_writer_flush_t flush;       /* Function to write bytes to the output stream */
     mpack_writer_error_t error_fn;    /* Function to call on error */
     mpack_writer_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                    /* Context for writer callbacks */
 
     char* buffer;         /* Byte buffer */
-    size_t size;          /* Size of the buffer */
-    size_t used;          /* How many bytes have been written into the buffer */
+    char* current;        /* Current position within the buffer */
+    char* end;            /* The end of the buffer */
     mpack_error_t error;  /* Error state */
 
     #if MPACK_WRITE_TRACKING
@@ -1537,7 +2306,33 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
  * @throws mpack_error_memory if allocation fails
  * @throws mpack_error_io if the file cannot be opened
  */
-void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
+void mpack_writer_init_filename(mpack_writer_t* writer, const char* filename);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_writer_init_filename().
+ */
+MPACK_INLINE void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
+    mpack_writer_init_filename(writer, filename);
+}
+
+/**
+ * Initializes an MPack writer that writes to a libc FILE. This can be used to
+ * write to stdout or stderr, or to a file opened separately.
+ *
+ * @param writer The MPack writer.
+ * @param stdfile The FILE.
+ * @param close_when_done If true, fclose() will be called on the FILE when it
+ *         is no longer needed. If false, the file will not be flushed or
+ *         closed when writing is done.
+ *
+ * @note The writer is buffered. If you want to write other data to the FILE in
+ *         between messages, you must flush it first.
+ *
+ * @see mpack_writer_flush_message
+ */
+void mpack_writer_init_stdfile(mpack_writer_t* writer, FILE* stdfile, bool close_when_done);
 #endif
 
 /** @cond */
@@ -1577,8 +2372,8 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * the final flush. It is safe to longjmp or throw out of this error handler,
  * but if you do, the writer will not be destroyed, and the teardown function
  * will not be called. You can still get the writer's error state, and you
- * must call mpack_writer_destroy again. (The second call is guaranteed not
- * to call your error handler again since the writer is already in an error
+ * must call @ref mpack_writer_destroy() again. (The second call is guaranteed
+ * not to call your error handler again since the writer is already in an error
  * state.)
  *
  * @see mpack_writer_set_error_handler
@@ -1594,9 +2389,23 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
  */
 
 /**
- * @name Callbacks
+ * @name Configuration
  * @{
  */
+
+#if MPACK_COMPATIBILITY
+/**
+ * Sets the version of the MessagePack spec that will be generated.
+ *
+ * This can be used to interface with older libraries that do not support
+ * the newest MessagePack features (such as the @c str8 type.)
+ *
+ * This requires @ref MPACK_COMPATIBILITY.
+ */
+MPACK_INLINE void mpack_writer_set_version(mpack_writer_t* writer, mpack_version_t version) {
+    writer->version = version;
+}
+#endif
 
 /**
  * Sets the custom pointer to pass to the writer callbacks, such as flush
@@ -1663,12 +2472,32 @@ MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer
  */
 
 /**
+ * Flushes any buffered data to the underlying stream.
+ *
+ * If write tracking is enabled, this will break and flag @ref
+ * mpack_error_bug if the writer has any open compound types, ensuring
+ * that no compound types are still open. This prevents a "missing
+ * finish" bug from causing a never-ending message.
+ *
+ * If the writer is connected to a socket and you are keeping it open,
+ * you will want to call this after writing a message (or set of
+ * messages) so that the data is actually sent.
+ *
+ * It is not necessary to call this if you are not keeping the writer
+ * open afterwards. You can just call `mpack_writer_destroy()`, and it
+ * will flush before cleaning up.
+ *
+ * This will assert if no flush function is assigned to the writer.
+ */
+void mpack_writer_flush_message(mpack_writer_t* writer);
+
+/**
  * Returns the number of bytes currently stored in the buffer. This
  * may be less than the total number of bytes written if bytes have
  * been flushed to an underlying stream.
  */
 MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
-    return writer->used;
+    return (size_t)(writer->current - writer->buffer);
 }
 
 /**
@@ -1676,7 +2505,15 @@ MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
  * after a write if bytes are flushed to an underlying stream.
  */
 MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
-    return writer->size - writer->used;
+    return (size_t)(writer->end - writer->current);
+}
+
+/**
+ * Returns the (current) size of the buffer. This may change after a write if
+ * the flush callback changes the buffer.
+ */
+MPACK_INLINE size_t mpack_writer_buffer_size(mpack_writer_t* writer) {
+    return (size_t)(writer->end - writer->buffer);
 }
 
 /**
@@ -2100,23 +2937,10 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
  * @}
  */
 
-/**
- * @}
- */
-
-#endif
-
-MPACK_HEADER_END
-
-#if MPACK_WRITER && MPACK_HAS_GENERIC
+#if MPACK_WRITER && MPACK_HAS_GENERIC && !defined(__cplusplus)
 
 /**
- * @addtogroup writer
- * @{
- */
-
-/**
- * @name Core Writer Functions
+ * @name Type-Generic Writers
  * @{
  */
 
@@ -2128,8 +2952,8 @@ MPACK_HEADER_END
  * The compiler will dispatch to an appropriate write function based
  * on the type of the @a value parameter.
  *
- * @note This requires C11 `_Generic` support, or C++. This is implemented
- * as a set of inline overloads in C++ mode if `_Generic` is not supported.
+ * @note This requires C11 `_Generic` support. (A set of inline overloads
+ * are used in C++ to provide the same functionality.)
  *
  * @warning In C11, the indentifiers `true`, `false` and `NULL` are
  * all of type `int`, not `bool` or `void*`! They will emit unexpected
@@ -2157,9 +2981,12 @@ MPACK_HEADER_END
  *
  * Type-generic writer for key-value pairs of null-terminated string
  * keys and primitive values.
- * a cstr string.
  *
  * @warning @a writer may be evaluated multiple times.
+ *
+ * @warning In C11, the indentifiers `true`, `false` and `NULL` are
+ * all of type `int`, not `bool` or `void*`! They will emit unexpected
+ * types when passed uncast, so be careful when using them.
  *
  * @param writer The writer.
  * @param key A null-terminated C string.
@@ -2174,12 +3001,29 @@ MPACK_HEADER_END
  * @}
  */
 
+#endif
+
 /**
  * @}
  */
-#elif defined(__cplusplus)
 
-/* C++ generic write for primitive values */
+#endif
+
+MPACK_HEADER_END
+
+#if defined(__cplusplus) || defined(MPACK_DOXYGEN)
+
+/*
+ * C++ generic writers for primitive values
+ *
+ * These currently sit outside of MPACK_HEADER_END because it defines
+ * extern "C". They'll be moved to a C++-specific header soon.
+ */
+
+#ifdef MPACK_DOXYGEN
+#undef mpack_write
+#undef mpack_write_kv
+#endif
 
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, int8_t value) {
     mpack_write_i8(writer, value);
@@ -2303,7 +3147,27 @@ MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, const 
 
 #endif
 
-/* mpack-reader.h */
+/* mpack/mpack-reader.h.h */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * @file
@@ -2323,6 +3187,10 @@ MPACK_HEADER_START
 #if MPACK_READ_TRACKING
 struct mpack_track_t;
 #endif
+
+// The denominator to determine whether a read is a small
+// fraction of the buffer size.
+#define MPACK_READER_SMALL_FRACTION_DENOMINATOR 32
 
 /**
  * @defgroup reader Core Reader API
@@ -2357,10 +3225,19 @@ struct mpack_track_t;
 typedef struct mpack_reader_t mpack_reader_t;
 
 /**
- * The MPack reader's fill function. It should fill the buffer as
- * much as possible, returning the number of bytes put into the buffer.
+ * The MPack reader's fill function. It should fill the buffer with at
+ * least one byte and at most the given @c count, returning the number
+ * of bytes written to the buffer.
  *
- * In case of error, it should flag an appropriate error on the reader.
+ * In case of error, it should flag an appropriate error on the reader
+ * (usually @ref mpack_error_io), or simply return zero. If zero is
+ * returned, mpack_error_io is raised.
+ *
+ * @note When reading from a stream, you should only copy and return
+ * the bytes that are immediately available. It is always safe to return
+ * less than the requested count as long as some non-zero number of bytes
+ * are read; if more bytes are needed, the read function will simply be
+ * called again.
  */
 typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
 
@@ -2411,17 +3288,14 @@ struct mpack_reader_t {
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
     mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
-
-    // The skip function may be unused, but we don't preproc it
-    // out on MPACK_OPTIMIZE_FOR_SIZE in case calling code is compiled
-    // with different optimization options. MPACK_OPTIMIZE_FOR_SIZE
-    // should never be used in header files.
     mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
 
-    char* buffer;       /* Byte buffer */
-    size_t size;        /* Size of the buffer, or zero if it's const */
-    size_t left;        /* How many bytes are left in the buffer */
-    size_t pos;         /* Position within the buffer */
+    char* buffer;       /* Writeable byte buffer */
+    size_t size;        /* Size of the buffer */
+
+    const char* data;   /* Current data pointer (in the buffer, if it is used) */
+    const char* end;    /* The end of available data (in the buffer, if it is used) */
+
     mpack_error_t error;  /* Error state */
 
     #if MPACK_READ_TRACKING
@@ -2467,8 +3341,35 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
 #if MPACK_STDIO
 /**
  * Initializes an MPack reader that reads from a file.
+ *
+ * The file will be automatically opened and closed by the reader.
  */
-void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
+void mpack_reader_init_filename(mpack_reader_t* reader, const char* filename);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_reader_init_filename().
+ */
+MPACK_INLINE void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
+    mpack_reader_init_filename(reader, filename);
+}
+
+/**
+ * Initializes an MPack reader that reads from a libc FILE. This can be used to
+ * read from stdin, or from a file opened separately.
+ *
+ * @param reader The MPack reader.
+ * @param stdfile The FILE.
+ * @param close_when_done If true, fclose() will be called on the FILE when it
+ *         is no longer needed. If false, the file will not be closed when
+ *         reading is done.
+ *
+ * @warning The reader is buffered. It will read data in advance of parsing it,
+ * and it may read more data than it parsed. See mpack_reader_remaining() to
+ * access the extra data.
+ */
+void mpack_reader_init_stdfile(mpack_reader_t* reader, FILE* stdfile, bool close_when_done);
 #endif
 
 /**
@@ -2929,7 +3830,7 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count);
  * @see mpack_read_bytes_inplace()
  */
 MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
-    return (reader->size == 0 || count <= reader->size / 32);
+    return (reader->size == 0 || count <= reader->size / MPACK_READER_SMALL_FRACTION_DENOMINATOR);
 }
 
 /**
@@ -3019,7 +3920,7 @@ void mpack_discard(mpack_reader_t* reader);
  * @}
  */
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 /**
  * @name Debugging Functions
  * @{
@@ -3031,7 +3932,6 @@ void mpack_discard(mpack_reader_t* reader);
  */
 void mpack_print_file(const char* data, size_t len, FILE* file);
 
-#ifndef MPACK_GCOV
 /**
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
@@ -3039,7 +3939,6 @@ void mpack_print_file(const char* data, size_t len, FILE* file);
 MPACK_INLINE void mpack_print(const char* data, size_t len) {
     mpack_print_file(data, len, stdout);
 }
-#endif
 
 /**
  * @}
@@ -3056,37 +3955,32 @@ MPACK_INLINE void mpack_print(const char* data, size_t len) {
 
 bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count);
 
-// Ensures there are at least count bytes left in the buffer. This will
-// flag an error if there is not enough data, and will assert if there
-// is a fill function and count is larger than the buffer size. Returns
-// true if there are enough bytes, false otherwise. Error handling must
-// be done separately! The reader cannot be in an error state when this
-// is called.
+/*
+ * Ensures there are at least @c count bytes left in the
+ * data, raising an error and returning false if more
+ * data cannot be made available.
+ */
 MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
-    mpack_assert(count <= MPACK_READER_MINIMUM_BUFFER_SIZE,
-            "cannot ensure %i bytes, this is more than the minimum buffer size %i!", count,
-            (int)count, (int)MPACK_READER_MINIMUM_BUFFER_SIZE);
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
-    if (count <= reader->left)
+    if (count <= (size_t)(reader->end - reader->data))
         return true;
     return mpack_reader_ensure_straddle(reader, count);
 }
 
-void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
+void mpack_read_native_straddle(mpack_reader_t* reader, char* p, size_t count);
 
-// Reads count bytes into p, deferring to mpack_read_native_big() if more
+// Reads count bytes into p, deferring to mpack_read_native_straddle() if more
 // bytes are needed than are available in the buffer.
 MPACK_INLINE void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
-    if (count > reader->left) {
-        mpack_read_native_big(reader, p, count);
+    if (count > (size_t)(reader->end - reader->data)) {
+        mpack_read_native_straddle(reader, p, count);
     } else {
-        mpack_memcpy(p, reader->buffer + reader->pos, count);
-        reader->pos += count;
-        reader->left -= count;
+        mpack_memcpy(p, reader->data, count);
+        reader->data += count;
     }
 }
 
@@ -3126,7 +4020,27 @@ MPACK_HEADER_END
 #endif
 
 
-/* mpack-expect.h */
+/* mpack/mpack-expect.h.h */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * @file
@@ -4083,8 +4997,8 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t size);
  * The allocated string must be freed with MPACK_FREE() (or simply free()
  * if MPack's allocator hasn't been customized.)
  *
- * @throws mpack_error_too_big if the string plus null-terminator is larger than the given maxsize.
- * @throws mpack_error_invalid if the value is not a string or contains a null byte.
+ * @throws mpack_error_too_big If the string plus null-terminator is larger than the given maxsize.
+ * @throws mpack_error_type If the value is not a string or contains a null byte.
  */
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
 
@@ -4105,9 +5019,9 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * if MPack's allocator hasn't been customized.)
  * if you want a null-terminator.
  *
- * @throws mpack_error_too_big if the string plus null-terminator is larger
+ * @throws mpack_error_too_big If the string plus null-terminator is larger
  *     than the given maxsize.
- * @throws mpack_error_invalid if the value is not a string or contains
+ * @throws mpack_error_type If the value is not a string or contains
  *     invalid UTF-8 or a null byte.
  */
 char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
@@ -4120,12 +5034,9 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * Remember that maps are unordered in JSON. Don't use this for map keys
  * unless the map has only a single key!
  */
-MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
-    if (mpack_strlen(str) > UINT32_MAX) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return;
-    }
-    mpack_expect_str_match(reader, str, mpack_strlen(str));
+MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr pointer is NULL");
+    mpack_expect_str_match(reader, cstr, mpack_strlen(cstr));
 }
 
 /**
@@ -4197,6 +5108,71 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t size);
  * Reads a binary blob with the given total maximum size, allocating storage for it.
  */
 char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
+
+/**
+ * Reads the start of an extension blob, returning its size in bytes and
+ * placing the type (0-127) into @p type.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_ext() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not an extension blob. The @p
+ * type value is unchanged if an error is raised.
+ */
+uint32_t mpack_expect_ext(mpack_reader_t* reader, int8_t* type);
+
+/**
+ * Reads the start of an extension blob, raising an error if its length is not
+ * at most the given number of bytes and placing the type (0-127) into @p type.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_ext() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not an extension blob or if its
+ * length does not match. The @p type value is unchanged if an error is raised.
+ */
+MPACK_INLINE uint32_t mpack_expect_ext_max(mpack_reader_t* reader, int8_t* type, uint32_t maxsize) {
+    uint32_t length = mpack_expect_ext(reader, type);
+    if (length > maxsize) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+    return length;
+}
+
+/**
+ * Reads the start of an extension blob, raising an error if its length is not
+ * exactly the given number of bytes and placing the type (0-127) into @p type.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_ext() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not an extension blob or if its
+ * length does not match. The @p type error is unchanged if an error is raised.
+ */
+MPACK_INLINE void mpack_expect_ext_size(mpack_reader_t* reader, int8_t* type, uint32_t count) {
+    if (mpack_expect_ext(reader, type) != count)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+
+/**
+ * Reads an extension blob into the given buffer, returning its size in bytes
+ * and placing the type (0-127) into @p type.
+ *
+ * For compatibility, this will accept if the underlying type is string or
+ * binary (since in MessagePack 1.0, strings and binary data were combined
+ * under the "raw" type which became string in 1.1.)
+ */
+size_t mpack_expect_ext_buf(mpack_reader_t* reader, int8_t* type, char* buf, size_t size);
+
+/**
+ * Reads an extension blob with the given total maximum size, allocating
+ * storage for it, and placing the type (0-127) into @p type.
+ */
+char* mpack_expect_ext_alloc(mpack_reader_t* reader, int8_t* type, size_t maxsize, size_t* size);
 
 /**
  * @}
@@ -4367,7 +5343,27 @@ MPACK_HEADER_END
 
 
 
-/* mpack-node.h */
+/* mpack/mpack-node.h.h */
+/*
+ * Copyright (c) 2015-2016 Nicholas Fraser
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 /**
  * @file
@@ -4412,6 +5408,8 @@ typedef struct mpack_node_t mpack_node_t;
  *
  * You only need to use this if you intend to provide your own storage
  * for nodes instead of letting the tree allocate it.
+ *
+ * Nodes are 16 bytes on most common architectures (32-bit and 64-bit.)
  */
 typedef struct mpack_node_data_t mpack_node_data_t;
 
@@ -4450,6 +5448,21 @@ typedef struct mpack_tree_t mpack_tree_t;
 typedef void (*mpack_tree_error_t)(mpack_tree_t* tree, mpack_error_t error);
 
 /**
+ * The MPack tree's read function. It should fill the buffer with as many bytes
+ * as are immediately available up to the given @c count, returning the number
+ * of bytes written to the buffer.
+ *
+ * In case of error, it should flag an appropriate error on the reader
+ * (usually @ref mpack_error_io.)
+ *
+ * @note You should only copy and return the bytes that are immediately
+ * available. It is always safe to return less than the requested count
+ * as long as some non-zero number of bytes are read; if more bytes are
+ * needed, the read function will simply be called again.
+ */
+typedef size_t (*mpack_tree_read_t)(mpack_tree_t* tree, char* buffer, size_t count);
+
+/**
  * A teardown function to be called when the tree is destroyed.
  */
 typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
@@ -4481,7 +5494,7 @@ struct mpack_node_data_t {
         double   d; /* The value if the type is double. */
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
-        const char* bytes; /* The byte pointer for str, bin and ext */
+        size_t offset; /* The byte offset for str, bin and ext */
         mpack_node_data_t* children; /* The children for map or array */
     } value;
 };
@@ -4493,16 +5506,32 @@ typedef struct mpack_tree_page_t {
 
 struct mpack_tree_t {
     mpack_tree_error_t error_fn;    /* Function to call on error */
+    mpack_tree_read_t read_fn;      /* Function to call to read more data */
     mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                  /* Context for tree callbacks */
 
     mpack_node_data_t nil_node; /* a nil node to be returned in case of error */
     mpack_error_t error;
 
-    size_t node_count;
-    size_t size;
+    #ifdef MPACK_MALLOC
+    char* buffer;
+    size_t buffer_capacity;
+    #endif
+
+    const char* data;
+    size_t data_length; // length of data (and content of buffer, if used)
+
+    size_t node_count; // total node count of tree
+    size_t size; // size in bytes of tree (usually matches length, but not if tree has trailing data)
+
+    size_t max_size;  // maximum message size
+    size_t max_nodes; // maximum nodes in a message
 
     mpack_node_data_t* root;
+    bool parsed;
+
+    mpack_node_data_t* pool; // pool, or NULL if no pool provided
+    size_t pool_count;
 
     #ifdef MPACK_MALLOC
     mpack_tree_page_t* next;
@@ -4537,27 +5566,54 @@ MPACK_INLINE mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
 
 #ifdef MPACK_MALLOC
 /**
- * Initializes a tree by parsing the given data buffer. The tree must be destroyed
- * with mpack_tree_destroy(), even if parsing fails.
+ * Initializes a tree parser with the given data buffer. The tree will
+ * allocate pages of nodes as needed, and will free them when destroyed.
  *
- * The tree will allocate pages of nodes as needed, and free them when destroyed.
+ * Configure the tree if desired, then call mpack_tree_parse() to parse it.
+ *
+ * The tree must be destroyed with mpack_tree_destroy().
  *
  * Any string or blob data types reference the original data, so the data
  * pointer must remain valid until after the tree is destroyed.
  */
 void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
+
+/**
+ * Initializes a tree parser from an unbounded stream, or a stream of
+ * unknown length.
+ *
+ * The parser can be used to read a single message from a stream of unknown
+ * length, or multiple messages from an unbounded stream, allowing it to
+ * be used for RPC communication.
+ *
+ * The stream will use a growable internal buffer to store the most recent
+ * message, as well as allocated pages of nodes for the parse tree.
+ *
+ * @param tree The tree parser
+ * @param read_fn The read function
+ * @param max_size The maximum size of a message in bytes
+ * @param max_size The maximum number of nodes to allocate. See @ref mpack_node_data_t
+ *     for the size of nodes.
+ *
+ * @see mpack_tree_read_t
+ */
+void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void* context,
+        size_t max_message_size, size_t max_message_nodes);
 #endif
 
 /**
- * Initializes a tree by parsing the given data buffer, using the given
+ * Initializes a tree parser with the given data buffer, using the given
  * node data pool to store the results.
+ *
+ * Configure the tree if desired, then call mpack_tree_parse() to parse it.
  *
  * If the data does not fit in the pool, mpack_error_too_big will be flagged
  * on the tree.
  *
  * The tree must be destroyed with mpack_tree_destroy(), even if parsing fails.
  */
-void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_data_t* node_pool, size_t node_pool_count);
+void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
+        mpack_node_data_t* node_pool, size_t node_pool_count);
 
 /**
  * Initializes an MPack tree directly into an error state. Use this if you
@@ -4567,8 +5623,8 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
 
 #if MPACK_STDIO
 /**
- * Initializes a tree by reading and parsing the given file. The tree must be
- * destroyed with mpack_tree_destroy(), even if parsing fails.
+ * Initializes a tree to parse the given file. The tree must be destroyed with
+ * mpack_tree_destroy(), even if parsing fails.
  *
  * The file is opened, loaded fully into memory, and closed before this call
  * returns.
@@ -4577,12 +5633,58 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
  * @param filename The filename passed to fopen() to read the file
  * @param max_bytes The maximum size of file to load, or 0 for unlimited size.
  */
-void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes);
+void mpack_tree_init_filename(mpack_tree_t* tree, const char* filename, size_t max_bytes);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_tree_init_filename().
+ */
+MPACK_INLINE void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
+    mpack_tree_init_filename(tree, filename, max_bytes);
+}
+
+/**
+ * Initializes a tree to parse the given libc FILE. This can be used to
+ * read from stdin, or from a file opened separately.
+ *
+ * The tree must be destroyed with mpack_tree_destroy(), even if parsing fails.
+ *
+ * The FILE is fully loaded fully into memory (and closed if requested) before
+ * this call returns.
+ *
+ * @param tree The tree to initialize.
+ * @param stdfile The FILE.
+ * @param max_bytes The maximum size of file to load, or 0 for unlimited size.
+ * @param close_when_done If true, fclose() will be called on the FILE when it
+ *         is no longer needed. If false, the file will not be closed when
+ *         reading is done.
+ *
+ * @warning The tree will read all data in the FILE before parsing it. If this
+ *          is used on stdin, the parser will block until it is closed, even if
+ *          a complete message has been written to it!
+ */
+void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes, bool close_when_done);
 #endif
+
+/**
+ * Parses a MessagePack message.
+ *
+ * If successful, the root node will be available under @ref mpack_tree_root().
+ * If not, an appropriate error will be flagged.
+ *
+ * This can be called repeatedly to parse a series of messages from a data
+ * source. When this is called, all previous nodes from this tree and their
+ * contents (including the root node) are invalidated.
+ */
+void mpack_tree_parse(mpack_tree_t* tree);
 
 /**
  * Returns the root node of the tree, if the tree is not in an error state.
  * Returns a nil node otherwise.
+ *
+ * @warning You must call mpack_tree_parse() before calling this. If
+ * @ref mpack_tree_parse() was never called, the tree will assert.
  */
 mpack_node_t mpack_tree_root(mpack_tree_t* tree);
 
@@ -4697,14 +5799,13 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 /**
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.
  */
 void mpack_node_print_file(mpack_node_t node, FILE* file);
 
-#ifndef MPACK_GCOV
 /**
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
@@ -4712,7 +5813,6 @@ void mpack_node_print_file(mpack_node_t node, FILE* file);
 MPACK_INLINE void mpack_node_print(mpack_node_t node) {
     mpack_node_print_file(node, stdout);
 }
-#endif
 #endif
 
 /**
@@ -5075,6 +6175,29 @@ MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
  * @{
  */
 
+MPACK_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
+    mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
+
+    mpack_type_t type = node.data->type;
+    MPACK_UNUSED(type);
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext,
+            "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+
+    return node.tree->data + node.data->value.offset;
+}
+
+MPACK_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
+    mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
+
+    mpack_type_t type = node.data->type;
+    MPACK_UNUSED(type);
+    mpack_assert(type == mpack_type_ext, "node of type %i (%s) is not an ext type!",
+            type, mpack_type_to_string(type));
+
+    // the exttype of an ext node is stored in the byte preceding the data
+    return (int8_t)*(mpack_node_data_unchecked(node) - 1);
+}
+
 /**
  * Checks that the given node contains a valid UTF-8 string.
  *
@@ -5124,9 +6247,8 @@ MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    // the exttype of an ext node is stored in the byte preceding the data
     if (node.data->type == mpack_type_ext)
-        return (int8_t)*(node.data->value.bytes - 1);
+        return mpack_node_exttype_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -5186,7 +6308,7 @@ MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str)
-        return node.data->value.bytes;
+        return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
@@ -5213,7 +6335,7 @@ MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return node.data->value.bytes;
+        return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
