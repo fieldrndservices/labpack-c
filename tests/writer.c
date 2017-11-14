@@ -89,23 +89,12 @@ MU_TEST(test_writer_begin_works)
 {
     labpack_writer_begin(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to begin writer");
-    // There appears to be an issue with the mpack library on Windows 10. If no
-    // data is written, the application crashes with a Debug Assertion Failed!
-    // error. An [issue](https://github.com/ludocode/mpack/issues/58) has been
-    // submitted to the [mpack project](https://github.com/ludocode/mpack).
-    // Until the issue has been resolved, let's write some data as
-    // a workaround.
-    labpack_write_object_bytes(writer, MSGPACK_HOME_PAGE_EXAMPLE_OUTPUT, MSGPACK_HOME_PAGE_EXAMPLE_LENGTH);
     labpack_writer_end(writer);
 }
 
 MU_TEST(test_writer_end_works)
 {
     labpack_writer_begin(writer);
-    // Need to write some data to avoid assertion error on Windows. Instead of
-    // the pre-encoded data used for the `begin` test, a simple integer is
-    // used. This is to mimic a similar test for a wrapper library in LabVIEW.
-    labpack_write_i8(writer, 127);
     labpack_writer_end(writer);
     mu_assert(labpack_writer_is_ok(writer), "Failed to end writer");
 }
@@ -538,8 +527,8 @@ MU_TEST_SUITE(write_types)
     MU_RUN_TEST(test_write_false_works);
     MU_RUN_TEST(test_write_nil_works);
     MU_RUN_TEST(test_write_object_bytes_works);
-    /*MU_RUN_TEST(test_write_object_bytes_works_with_null_data);*/
-    /*MU_RUN_TEST(test_write_object_bytes_errors_with_wrong_size);*/
+    MU_RUN_TEST(test_write_object_bytes_works_with_null_data);
+    MU_RUN_TEST(test_write_object_bytes_errors_with_wrong_size);
 }
 
 MU_TEST_SUITE(arrays_and_maps)
@@ -555,25 +544,23 @@ MU_TEST_SUITE(data_helpers)
     MU_SUITE_CONFIGURE((void*)&before_each, (void*)&after_each);
 
     MU_RUN_TEST(test_write_str_works);
-    /*MU_RUN_TEST(test_write_str_errors_with_wrong_size);*/
+    MU_RUN_TEST(test_write_str_errors_with_wrong_size);
     MU_RUN_TEST(test_write_utf8_works);
-    /*MU_RUN_TEST(test_write_utf8_errors_with_wrong_size);*/
+    MU_RUN_TEST(test_write_utf8_errors_with_wrong_size);
     MU_RUN_TEST(test_write_cstr_works);
-    /*MU_RUN_TEST(test_write_cstr_errors_with_null_value);*/
+    MU_RUN_TEST(test_write_cstr_errors_with_null_value);
     MU_RUN_TEST(test_write_cstr_or_nil_works);
-    /*MU_RUN_TEST(test_write_cstr_or_nil_works_with_null_value);*/
+    MU_RUN_TEST(test_write_cstr_or_nil_works_with_null_value);
     MU_RUN_TEST(test_write_utf8_cstr_works);
-    /*MU_RUN_TEST(test_write_utf8_cstr_errors_with_null_value);*/
+    MU_RUN_TEST(test_write_utf8_cstr_errors_with_null_value);
     MU_RUN_TEST(test_write_utf8_cstr_or_nil_works);
-    /*MU_RUN_TEST(test_write_utf8_cstr_or_nil_works_with_null_value);*/
+    MU_RUN_TEST(test_write_utf8_cstr_or_nil_works_with_null_value);
     MU_RUN_TEST(test_write_bin_works);
-    // Test is commented out until a fix is available for empty writer destruction.
-    /*MU_RUN_TEST(test_write_bin_works_with_null_data);*/
-    /*MU_RUN_TEST(test_write_bin_errors_with_wrong_count);*/
+    MU_RUN_TEST(test_write_bin_works_with_null_data);
+    MU_RUN_TEST(test_write_bin_errors_with_wrong_count);
     MU_RUN_TEST(test_write_ext_works);
-    // Test is commented out until a fix is available for empty writer destruction.
-    /*MU_RUN_TEST(test_write_ext_works_with_null_data);*/
-    /*MU_RUN_TEST(test_write_ext_errors_with_wrong_count);*/
+    MU_RUN_TEST(test_write_ext_works_with_null_data);
+    MU_RUN_TEST(test_write_ext_errors_with_wrong_count);
 }
 
 MU_TEST_SUITE(chunked_data)
@@ -584,8 +571,7 @@ MU_TEST_SUITE(chunked_data)
     MU_RUN_TEST(test_begin_and_end_bin_works);
     MU_RUN_TEST(test_begin_and_end_ext_works);
     MU_RUN_TEST(test_write_bytes_works);
-    // Test is commented out until a fix is available for empty writer destruction.
-    /*MU_RUN_TEST(test_write_bytes_errors_with_wrong_count);*/
+    MU_RUN_TEST(test_write_bytes_errors_with_wrong_count);
     MU_RUN_TEST(test_end_type_works);
 }
 
