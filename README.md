@@ -87,12 +87,17 @@ If the `ctest`, or `make test` on non-Windows systems, commands are used _after_
 
 Start a terminal command prompt and navigate to the root folder of the project. Note, if following from the [Build](#build) instructions, a command prompt should already be available at the root folder of the project. Enter the following commands to run the tests:
 
-    > ctest -C "Debug"
+```text
+> ctest -C "Debug"
+```
 
 Or
-    > bin\reader
-    > bin\writer
-    > bin\status
+
+```text
+> bin\reader
+> bin\writer
+> bin\status
+```
 
 ### macOS
 
