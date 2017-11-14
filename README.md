@@ -90,7 +90,7 @@ Start a terminal command prompt and navigate to the root folder of the project. 
     > ctest -C "Debug"
 
 Or
-
+    > bin\tests\reader
     > bin\tests\writer
     > bin\tests\status
 
@@ -102,6 +102,7 @@ Start the Terminal.app. Note, if following from the [Build](#build) instructions
 
 Or,
 
+    $ bin/tests/reader
     $ bin/tests/writer
     $ bin/tests/status
 
@@ -117,6 +118,7 @@ Start a terminal. Note, if following from the [Build](#build) instructions, the 
 
 Or,
 
+    $ bin/tests/reader
     $ bin/tests/writer
     $ bin/tests/status
 
