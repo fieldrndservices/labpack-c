@@ -4,3 +4,4 @@ build
 build*
 !build.bat
 .DS_Store
+docs
