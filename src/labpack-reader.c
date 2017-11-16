@@ -477,7 +477,8 @@ labpack_reader_end_ext(labpack_reader_t* reader)
 {
     assert(reader);
     if (labpack_reader_is_ok(reader)) {
-        mpack_done_ext(
+        mpack_done_ext(reader->decoder);
+        labpack_reader_check_decoder(reader);
     }
 }
 

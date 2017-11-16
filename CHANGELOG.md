@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- The `labpack_reader_begin_ext` and `labpack_reader_end_ext` functions.
+
 ## [0.1.0] - 2017-11-14
 
 ### Added

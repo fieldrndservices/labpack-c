@@ -382,6 +382,23 @@ MU_TEST(test_begin_and_end_bin_works)
     mu_assert(actual == EXPECTED, ACTUAL_DOES_NOT_MATCH_EXPECTED);
 }
 
+MU_TEST(test_begin_and_end_ext_works)
+{
+    const uint32_t EXPECTED_LENGTH = 0;
+    const int8_t EXPECTED_TYPE = 1;
+    uint32_t actual_length;
+    int8_t actual_type;
+    labpack_reader_begin(reader, "\xc7\x00\x01", 3);
+    actual_length = labpack_reader_begin_ext(reader, &actual_type);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to begin bin");
+    labpack_reader_end_ext(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end bin");
+    labpack_reader_end(reader);
+    mu_assert(labpack_reader_is_ok(reader), "Failed to end reader");
+    mu_assert(actual_length == EXPECTED_LENGTH, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+    mu_assert(actual_type == EXPECTED_TYPE, ACTUAL_DOES_NOT_MATCH_EXPECTED);
+}
+
 MU_TEST_SUITE(reader_create_and_destroy) 
 {
     MU_RUN_TEST(test_reader_sanity_check);
@@ -462,6 +479,7 @@ MU_TEST_SUITE(binary_data_functions)
     MU_SUITE_CONFIGURE((void*)&setup, (void*)&teardown);
 
     MU_RUN_TEST(test_begin_and_end_bin_works);
+    MU_RUN_TEST(test_begin_and_end_ext_works);
 }
 
 int 
