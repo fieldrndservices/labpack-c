@@ -32,6 +32,8 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
+/** @file */
+
 #ifndef LABPACK_H
 #define LABPACK_H
 
