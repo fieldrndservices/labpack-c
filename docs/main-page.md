@@ -1,12 +1,10 @@
 # LabPack-C: A LabVIEW-Friendly C library for encoding and decoding MessagePack data
 
-[About](#what-is-labpack-c) | [Install](#install) | [Build](#build) | [Tests](#tests) | [License](#license)
-
-## What is LabPack-C? {#what-is-labpack}
+## What is LabPack-C?
 
 The LabPack-C project is a [LabVIEW](http://www.ni.com/labview)-friendly C library for encoding and decoding [MessagePack](http://www.msgpack.org) data. The library is intended to be used with the [Call Library Function](http://zone.ni.com/reference/en-XX/help/371361P-01/glang/call_library_function/) node. This provides MessagePack encoding and decoding functionality to LabVIEW as a Dynamic Link Library (DLL, Windows), Dynamic Library (Dylib, macOS), and/or Shared Object (SO, Linux).
 
-## Install {#install}
+## Install
 
 A single ZIP archive containing the pre-compiled/built shared libraries for all of the platforms listed in the [Build](#build) section is provided with each [release](https://github.com/fieldrndservices/labpack-c/releases).
 
@@ -21,7 +19,7 @@ A single ZIP archive containing the pre-compiled/built shared libraries for all 
 | Linux       | `/usr/local/lib`      |
 | NI Linux RT | `/usr/local/lib`      |
 
-## Build {#build}
+## Build
 
 Ensure all of the following dependencies are installed and up-to-date before proceeding:
 
@@ -31,7 +29,7 @@ Ensure all of the following dependencies are installed and up-to-date before pro
 - [Git](https://git-scm.com/)
 - [C/C++ Development Tools for NI Linux Real-Time, Eclipse Edition 2017](http://www.ni.com/download/labview-real-time-module-2017/6731/en/), NI Linux RT only
 
-### Windows {#build-windows}
+### Windows
 
 The [Microsoft Visual C++ Build Tools 2017](https://www.visualstudio.com/downloads/#build-tools-for-visual-studio-2017) should have installed a `x64 Native Build Tools` command prompt. Start the `x64 Native Build Tools` command prompt. This ensures the appropriate C compiler is available to CMake to build the library. Run the following commands to obtain a copy of the source code and build both the 32-bit and 64-bit DLLs with a `Release` configuration:
 
@@ -41,7 +39,7 @@ The [Microsoft Visual C++ Build Tools 2017](https://www.visualstudio.com/downloa
 
 The DLLs will be available in the `build32\bin` and `build64\bin` folders. 
 
-### macOS {#build-macos}
+### macOS
 
 Ensure the command-line tools for [XCode](https://developer.apple.com/xcode/) have been installed along with [git](https://git-scm.com/) before proceeding. Start the Terminal.app. Run the following commands to obtain a copy of the source code from the repository and build the dynamic library (dylib):
 
@@ -54,7 +52,7 @@ Ensure the command-line tools for [XCode](https://developer.apple.com/xcode/) ha
 
 The dynamic library (.dylib) will be available in the `build/bin` folder.
 
-### Linux {#build-linux}
+### Linux
 
 If running on Ubuntu or similar distribution, ensure the [build-essential](https://packages.ubuntu.com/trusty/build-essential), [cmake](https://packages.ubuntu.com/trusty/cmake), and [git](https://packages.ubuntu.com/trusty/git) packages are installed before proceeding. These can be installed with the following command from a terminal:
 
@@ -71,7 +69,7 @@ Start a terminal, and run the following commands to obtain a copy of the source 
 
 The shared object (.so) will be available in the `build/bin` folder.
 
-### NI Linux RT {#build-ni-linux-rt}
+### NI Linux RT
 
 NI provides a cross-compiler for their Real-Time (RT) Linux distribution. Before proceeding, download and install the [C/C++ Development Tools for NI Linux Real-Time, Eclipse Edition 2017](http://www.ni.com/download/labview-real-time-module-2017/6731/en/). It is also best to review the [Getting Stared with C/C++ Development Tools for NI Linux Real-Time, Eclipse Edition](http://www.ni.com/tutorial/14625/en/) guide for more general information about configuring the internal builder.
 
@@ -90,13 +88,13 @@ NI provides a cross-compiler for their Real-Time (RT) Linux distribution. Before
 
 Note, steps 3-10 only need to be done once to setup the project. The `liblabpack-rt.so` will be located in the `x86_64` folder under the project's root folder inside the Eclipse workspace folder, and the `liblabpack-arm-rt.so` will be located in the `ARM` folder under the project's root folder inside the Eclipse workspace folder.
 
-## Tests {#tests}
+## Tests
 
 All of the tests are located in the `tests` folder. The tests are organized in "modules", where an executable is created that tests each source "module", i.e. writer, reader, etc. The tests are separated from the source, but the tests are built as part of build for the shared library. Each test executable is located in the `bin\tests` folder of the build directory and they can be run independently.
 
 If the `ctest`, or `make test` on non-Windows systems, commands are used _after_ building the tests to run the tests, then the [ctest](https://cmake.org/Wiki/CMake/Testing_With_CTest) test runner framework is used to run the tests. This provides a very high level summary of the results of running all tests. Since the tests are organized into "modules" and suites, the [ctest](https://cmake.org/cmake/help/v3.9/manual/ctest.1.html) command only indicates that a test within a module and suite has failed. It does _not_ indicate which test has failed. To investigate the failed test, the executable in the `bin\tests` folder for test module should be run. For example, if a test in the writer module failed, the ctest test runner will indicate the "writer" test has failed. The `bin\tests\writer` executable should then be run as a standalone application without the ctest test runner to obtain information about which test and assertion failed.
 
-### Windows {#tests-window}
+### Windows
 
 Start a terminal command prompt and navigate to the root folder of the project. Note, if following from the [Build](#build) instructions, a command prompt should already be available at the root folder of the project. Enter the following commands to run the tests:
 
@@ -112,7 +110,7 @@ Or
 > bin\status
 ```
 
-### macOS {#tests-macos}
+### macOS
 
 Start the Terminal.app. Note, if following from the [Build](#build) instructions, the Terminal.app has already been started and the present working directory (pwd) should already be the root folder of the project. Enter the following commands to run the tests:
 
@@ -128,7 +126,7 @@ Or,
 
     $ make test
 
-### Linux {#tests-linux}
+### Linux
 
 Start a terminal. Note, if following from the [Build](#build) instructions, the terminal has already been started and the present working directory (pwd) should already be the root folder of the project. Enter the following commands to run the tests:
 
@@ -144,23 +142,25 @@ Or,
 
     $ make test
 
-## Documentation {#documentation}
+## Documentation
 
-[Doxygen](http://www.doxygen.org) is used to build the Application Programming Interface (API) documentation. Ensure the latest version is installed then enter the following command from the root directory of the project to build the API docs:
+[Doxygen](http://www.doxygen.org) is used to build the Application Programming Interface (API) documentation. Ensure the latest version is installed then enter the following command to build the documentation:
 
+    $ mkdir -p build/docs/html
+    $ cd docs
     $ doxygen Doxyfile
 
-The output will be in the `docs` folder of the root directory of the project.
+The output will be in the `build/docs/html` folder of the root directory of the project.
 
-## License {#license}
+## License
 
-Copyright (c) 2017 Field R&D Services, LLC. All rights reserved.
+Copyright (c) 2017 Field R&D Services, LLC.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.  3. Neither the name of the Field R&D Services nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+3. Neither the name of the Field R&D Services nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY Field R&D Services, LLC ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Field R&D Services, LLC BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
@@ -169,9 +169,7 @@ Third-party maintained and licensed projects used by LabPack include:
 * mpack: Copyright (c) 2015-2016 Nicholas Fraser
 * minunit: Copyright (c) 2012 David Siñuela Pastor
 
---------------------------------------------------------------------------------
-
-mpack: A C encoder/decoder for the MessagePack serialization format
+### mpack: A C encoder/decoder for the MessagePack serialization format
 
 Copyright (c) 2015-2016 Nicholas Fraser <https://github.com/ludocode/mpack>
 
@@ -181,9 +179,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
---------------------------------------------------------------------------------
-
-minunit - Minimal unit testing framework for C
+### minunit - Minimal unit testing framework for C
 
 Copyright (c) 2012 David Siñuela Pastor <https://github.com/siu/minunit>
 
