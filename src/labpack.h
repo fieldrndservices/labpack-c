@@ -32,7 +32,11 @@
  *   Christopher R. Field <chris@fieldrndservices.com>
  */
 
-/** @file */
+/** 
+ * @file
+ *
+ * Includes the full LabPack API.
+ */
 
 #ifndef LABPACK_H
 #define LABPACK_H
@@ -101,6 +105,12 @@ typedef enum _labpack_type {
 } labpack_type_t;
 
 /**
+ * @defgroup utility Utility API
+ *
+ * @{
+ */
+
+/**
  * Gets the library version number in Major.Minor.Patch notation.
  */
 LABPACK_API const char* labpack_version();
@@ -132,6 +142,16 @@ LABPACK_API int labpack_status_code(labpack_status_t status);
  * Gets a string representation of the status.
  */
 LABPACK_API const char* labpack_status_string(labpack_status_t status);
+
+/**
+ * @}
+ */
+
+/**
+ * @defgroup writer Write API
+ *
+ * @{
+ */
 
 /**
  * Creates a MessagePack encoder. 
@@ -444,6 +464,16 @@ LABPACK_API void labpack_writer_end_ext(labpack_writer_t* writer);
 LABPACK_API void labpack_writer_end_type(labpack_writer_t* writer, labpack_type_t type);
 
 /**
+ * @}
+ */
+
+/**
+ * @defgroup reader Read API
+ *
+ * @{
+ */
+
+/**
  * Creates (allocates) a new MessagePack decoder.
  */
 LABPACK_API labpack_reader_t* labpack_reader_create();
@@ -718,6 +748,10 @@ LABPACK_API void labpack_reader_end_ext(labpack_reader_t* reader);
  * This can be used to read a str, bin, or ext in chunks.
  */
 LABPACK_API void labpack_read_bytes(labpack_reader_t* reader, char* data, size_t count);
+
+/**
+ * @}
+ */
 
 #ifdef __cplusplus
 }
