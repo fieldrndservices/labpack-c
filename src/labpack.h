@@ -107,6 +107,8 @@ typedef enum _labpack_type {
 /**
  * @defgroup utility Utility API
  *
+ * Obtain library-specific and error/status information.
+ *
  * @{
  */
 
@@ -149,6 +151,8 @@ LABPACK_API const char* labpack_status_string(labpack_status_t status);
 
 /**
  * @defgroup writer Write API
+ *
+ * Encodes data into MessagePack format.
  *
  * @{
  */
@@ -469,6 +473,8 @@ LABPACK_API void labpack_writer_end_type(labpack_writer_t* writer, labpack_type_
 
 /**
  * @defgroup reader Read API
+ *
+ * Decodes MessagePack data.
  *
  * @{
  */
