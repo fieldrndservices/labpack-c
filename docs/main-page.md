@@ -147,8 +147,7 @@ Or,
 [Doxygen](http://www.doxygen.org) is used to build the Application Programming Interface (API) documentation. Ensure the latest version is installed then enter the following command to build the documentation:
 
     $ mkdir -p build/docs/html
-    $ cd docs
-    $ doxygen Doxyfile
+    $ doxygen docs/Doxyfile
 
 The output will be in the `build/docs/html` folder of the root directory of the project.
 
