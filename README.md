@@ -144,7 +144,7 @@ Or,
 
     $ make test
 
-## Documentation
+## [Documentation](https://fieldrndservices.github.io/labpack-c/)
 
 [Doxygen](http://www.doxygen.org) is used to build the Application Programming Interface (API) documentation. Ensure the latest version is installed then enter the following command from the root directory of the project to build the API docs:
 
