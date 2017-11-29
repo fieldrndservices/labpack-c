@@ -30,6 +30,7 @@ Ensure all of the following dependencies are installed and up-to-date before pro
 - [XCode Command Line Tools](https://developer.apple.com/xcode/features/), macOS Only
 - [Git](https://git-scm.com/)
 - [C/C++ Development Tools for NI Linux Real-Time, Eclipse Edition 2017](http://www.ni.com/download/labview-real-time-module-2017/6731/en/), NI Linux RT only
+- [Doxygen](http://www.doxygen.org), Documentation only
 
 ### Windows
 
