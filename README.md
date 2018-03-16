@@ -1,12 +1,13 @@
 # LabPack-C: A LabVIEW-Friendly C library for encoding and decoding MessagePack data
 
-[About](#what-is-labpack-c) | [Install](#install) | [Build](#build) | [API](https://fieldrndservices.github.io/labpack-c/) | [Tests](#tests) | [License](#license)
-
-## What is LabPack-C?
-
 The LabPack-C project is a [LabVIEW](http://www.ni.com/labview)-friendly C library for encoding and decoding [MessagePack](http://www.msgpack.org) data. The library is intended to be used with the [Call Library Function](http://zone.ni.com/reference/en-XX/help/371361P-01/glang/call_library_function/) node. This provides MessagePack encoding and decoding functionality to LabVIEW as a Dynamic Link Library (DLL, Windows), Dynamic Library (Dylib, macOS), and/or Shared Object (SO, Linux).
 
-## Install
+[![GitHub release](https://img.shields.io/github/release/fieldrndservices/labpack-c.svg)](https://github.com/fieldrndservices/labpack-c/releases)
+[![license](https://img.shields.io/github/license/fieldrndservices/labpack-c.svg)](https://github.com/fieldrndservices/labpack-c/blob/master/LICENSE)
+
+[Installation](#installation) | [Build](#build) | [API](https://fieldrndservices.github.io/labpack-c/) | [Tests](#tests) | [License](#license)
+
+## Installation
 
 A single ZIP archive containing the pre-compiled/built shared libraries for all of the platforms listed in the [Build](#build) section is provided with each [release](https://github.com/fieldrndservices/labpack-c/releases).
 
@@ -156,5 +157,5 @@ Or,
 
 ## License
 
-See the LICENSE file for more information about licensing and copyright.
+The labpack-c project is licensed under the [BSD 3-Clause](https://opensource.org/licenses/BSD-3-Clause) license. See the [LICENSE](https://github.com/fieldrndservices/labpack-c/blob/master/LICENSE) file for more information about licensing and copyright.
 
